@@ -43,17 +43,25 @@ class BooksTable extends Component
         $this->resetPage();
     }
 
-    public function sortBy($field)
-    {
-        if ($this->sortField === $field) {
-            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            $this->sortField = $field;
-            $this->sortDirection = 'asc';
-        }
+  public function sortBy($field)
+{
+    // Permitir ordenação também por bibliography e cover_image
+    $allowedFields = ['title', 'isbn', 'publisher_id', 'year', 'price', 'bibliography', 'cover_image'];
 
-        $this->resetPage();
+    if (!in_array($field, $allowedFields)) {
+        return;
     }
+
+    if ($this->sortField === $field) {
+        $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        $this->sortField = $field;
+        $this->sortDirection = 'asc';
+    }
+
+    $this->resetPage();
+}
+
 
        public function render()
        {

@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Livewire\BooksTable;
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -22,7 +22,14 @@ Route::middleware([
 
 
 
+
 });
+
+  Route::get('/authors', function () {
+    return view('authors.index');
+})->middleware(['auth'])->name('authors.index');
+
+
 
 
 

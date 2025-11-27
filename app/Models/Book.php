@@ -31,8 +31,8 @@ class Book extends Model
     }
 
     // Relação muitos-para-muitos com Authors
-  //  public function authors()
-  //  {
-    //    return $this->belongsToMany(Author::class);
-   // }
+  public function authors()
+   {
+     return $this->belongsToMany(Author::class);
+    }
 }

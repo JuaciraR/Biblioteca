@@ -20,18 +20,13 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Tabela pivot para relação muitos-para-muitos com autores
-        Schema::create('author_book', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('book_id')->constrained()->onDelete('cascade');
-            $table->foreignId('author_id')->constrained()->onDelete('cascade');
-            $table->timestamps();
-        });
+       
+    
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('author_book');
+       
         Schema::dropIfExists('books');
     }
 };
