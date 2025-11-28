@@ -15,6 +15,7 @@
                     <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">Dashboard</x-nav-link>
                     <x-nav-link href="{{ route('books') }}" :active="request()->routeIs('books')">Books</x-nav-link>
                     <x-nav-link href="{{ route('authors.index') }}" :active="request()->routeIs('authors.index')">Authors</x-nav-link>
+                      <x-nav-link href="{{ route('publishers') }}" :active="request()->routeIs('publishers')">Publishers</x-nav-link>
                 </div>
             </div>
 
@@ -142,6 +143,7 @@
             <x-responsive-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">Dashboard</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('books') }}" :active="request()->routeIs('books')">Books</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('authors.index') }}" :active="request()->routeIs('authors.index')">Authors</x-responsive-nav-link>
+             <x-responsive-nav-link href="{{ route('publishers') }}" :active="request()->routeIs('publishers')">Publishers</x-responsive-nav-link>
         </div>
 
         <!-- Responsive Settings Options -->

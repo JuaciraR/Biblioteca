@@ -8,10 +8,10 @@ use App\Models\Author;
 
 class AuthorBookSeeder extends Seeder
 {
-    public function run(): void
+     public function run(): void
     {
         $map = [
-            'Harry Potter and the Philosopher\'s Stone' => ['J.K. Rowling'],
+            'Harry Potter' => ['J.K. Rowling'],
             'A Game of Thrones' => ['George R.R. Martin'],
             'The Shining' => ['Stephen King'],
             'Murder on the Orient Express' => ['Agatha Christie'],
@@ -20,7 +20,6 @@ class AuthorBookSeeder extends Seeder
 
         foreach ($map as $title => $authors) {
             $book = Book::where('title', $title)->first();
-
             if ($book) {
                 foreach ($authors as $name) {
                     $author = Author::firstWhere('name', $name);

@@ -8,7 +8,7 @@ use App\Models\Publisher;
 
 class BookSeeder extends Seeder
 {
-    public function run(): void
+   public function run(): void
     {
         $books = [
             [
@@ -18,7 +18,7 @@ class BookSeeder extends Seeder
                 'price' => 29.99,
                 'publisher' => 'Penguin Random House',
                 'bibliography' => 'First book in the Harry Potter series.',
-                'cover_image' => 'covers/harry_potter_1.jpg',
+                'cover_image' => 'https://upload.wikimedia.org/wikipedia/en/6/6b/Harry_Potter_and_the_Philosopher%27s_Stone_Book_Cover.jpg',
             ],
             [
                 'title' => 'A Game of Thrones',
@@ -27,7 +27,7 @@ class BookSeeder extends Seeder
                 'price' => 34.99,
                 'publisher' => 'HarperCollins',
                 'bibliography' => 'First book in A Song of Ice and Fire.',
-                'cover_image' => 'covers/game_of_thrones.jpg',
+                'cover_image' => 'https://upload.wikimedia.org/wikipedia/en/9/93/AGameOfThrones.jpg',
             ],
             [
                 'title' => 'The Shining',
@@ -36,7 +36,7 @@ class BookSeeder extends Seeder
                 'price' => 24.50,
                 'publisher' => 'Macmillan Publishers',
                 'bibliography' => 'Horror novel set in the Overlook Hotel.',
-                'cover_image' => 'covers/the_shining.jpg',
+                'cover_image' => 'https://upload.wikimedia.org/wikipedia/commons/0/09/The_Shining_%281977%29_front_cover%2C_first_edition.jpg',
             ],
             [
                 'title' => 'Murder on the Orient Express',
@@ -45,7 +45,7 @@ class BookSeeder extends Seeder
                 'price' => 19.99,
                 'publisher' => 'Simon & Schuster',
                 'bibliography' => 'Detective novel featuring Hercule Poirot.',
-                'cover_image' => 'covers/orient_express.jpg',
+                'cover_image' => 'https://th.bing.com/th/id/R.1458bec4f6ae604ccf6b36f6ac4a0777?rik=fZi2dV1Hghatzw&pid=ImgRaw&r=0',
             ],
             [
                 'title' => 'The Alchemist',
@@ -54,7 +54,7 @@ class BookSeeder extends Seeder
                 'price' => 15.00,
                 'publisher' => 'Hachette Livre',
                 'bibliography' => 'Novel by Paulo Coelho about a shepherd\'s journey.',
-                'cover_image' => 'covers/the_alchemist.jpg',
+                'cover_image' => 'https://tse3.mm.bing.net/th/id/OIP.XaCD-UkLKR3ML-pkarM1GQHaJ4?rs=1&pid=ImgDetMain&o=7&rm=3',
             ],
         ];
 

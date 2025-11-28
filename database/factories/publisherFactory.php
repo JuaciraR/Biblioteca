@@ -16,8 +16,9 @@ class publisherFactory extends Factory
      */
     public function definition(): array
     {
-        return [
-            //
-        ];
+         return [
+        'name' => $this->faker->company,
+        'logo' => null, // pode gerar fake com $this->faker->imageUrl(100,100)
+    ];
     }
 }

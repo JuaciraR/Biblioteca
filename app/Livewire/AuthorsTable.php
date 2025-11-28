@@ -3,24 +3,27 @@
 namespace App\Livewire;
 
 use Livewire\Component;
-use Livewire\WithPagination;
 use App\Models\Author;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class AuthorsTable extends Component
 {
-    use WithPagination;
-
     public $search = '';
+    public $filterLetter = '';
     public $sortField = 'name';
     public $sortDirection = 'asc';
-    protected $paginationTheme = 'tailwind';
 
+    // Reinicia ordenação quando muda pesquisa/filtro
     public function updatingSearch()
     {
-        $this->resetPage();
+        $this->resetSort();
     }
 
+    public function updatingFilterLetter()
+    {
+        $this->resetSort();
+    }
+
+    // Função para alterar ordenação
     public function sortBy($field)
     {
         if ($this->sortField === $field) {
@@ -29,8 +32,12 @@ class AuthorsTable extends Component
             $this->sortField = $field;
             $this->sortDirection = 'asc';
         }
+    }
 
-        $this->resetPage();
+    private function resetSort()
+    {
+        $this->sortField = 'name';
+        $this->sortDirection = 'asc';
     }
 
     public function render()
@@ -38,7 +45,14 @@ class AuthorsTable extends Component
         // 1. Buscar todos os autores
         $authors = Author::all();
 
-        // 2. Filtrar por pesquisa
+        // 2. Filtro pela primeira letra
+        if ($this->filterLetter) {
+            $authors = $authors->filter(fn($a) =>
+                strtolower(substr($a->name, 0, 1)) === strtolower($this->filterLetter)
+            );
+        }
+
+        // 3. Filtro por pesquisa
         if ($this->search) {
             $searchLower = mb_strtolower($this->search);
             $authors = $authors->filter(fn($a) =>
@@ -46,32 +60,16 @@ class AuthorsTable extends Component
             );
         }
 
-        // 3. Ordenar pelo campo selecionado
-        $authors = $authors->sortBy(fn($a) => strtolower($a->{$this->sortField}));
+        // 4. Ordenação
+       $authors = $authors->sortBy(function ($a) {
+       $value = $a->{$this->sortField};
 
-        if ($this->sortDirection === 'desc') {
-            $authors = $authors->reverse();
-        }
-
-        // 4. Paginação manual
-        $perPage = 10;
-        $currentPage = $this->page ?? 1;
-
-        $authorsPaginated = $authors
-            ->slice(($currentPage - 1) * $perPage, $perPage)
-            ->values();
+       // Evita erros quando ordenar pela foto
+      return strtolower($value ?? '');
+     });
 
         return view('livewire.authors-table', [
-            'authors' => new LengthAwarePaginator(
-                $authorsPaginated,
-                $authors->count(),
-                $perPage,
-                $currentPage,
-                [
-                    'path' => request()->url(),
-                    'query' => request()->query()
-                ]
-            )
+            'authors' => $authors,
         ]);
     }
 }

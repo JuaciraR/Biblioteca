@@ -1,47 +1,61 @@
-<div class="p-6">
+<div class="p-6 max-w-4xl mx-auto">
+
     <!-- SEARCH -->
     <div class="flex flex-col md:flex-row md:items-center gap-4 mb-6">
-        <input type="text" placeholder="Search authors..." class="input input-bordered w-full max-w-xs" wire:model.live="search"/>
+        <input 
+            type="text" 
+            placeholder="Search authors..." 
+            class="input input-bordered w-full max-w-xs"
+            wire:model.live="search"
+        />
     </div>
 
     <!-- TABLE -->
-    <div class="overflow-x-auto">
-        <table class="table table-zebra w-full">
-            <thead>
+    <div class="overflow-x-auto shadow rounded-lg">
+        <table class="table table-zebra w-full text-center">
+            
+            <thead class="bg-gray-100">
                 <tr>
-                    <th wire:click="sortBy('name')" class="cursor-pointer text-center">
+                    <th wire:click="sortBy('name')" class="cursor-pointer">
                         Name
                         @if($sortField === 'name')
                             <span>{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
                         @endif
                     </th>
-                    <th class="text-center">Photo</th>
+                     <th class="cursor-pointer" wire:click="sortBy('photo')">
+                        Photo
+                        @if($sortField === 'photo')
+                            <span>{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span>
+                        @endif
+                    </th>
                 </tr>
             </thead>
 
             <tbody>
                 @forelse ($authors as $author)
                     <tr>
-                        <td class="text-center">{{ $author->name }}</td>
-                        <td class="text-center">
+                        <td class="py-3">{{ $author->name }}</td>
+
+                        <td class="py-3">
                             @if($author->photo)
-                                <img src="{{ asset('storage/' . $author->photo) }}" class="h-12 w-12 rounded-full object-cover mx-auto" alt="{{ $author->name }}">
+                                <div class="flex flex-col items-center">
+                                    <img src="{{ $author->photo }}" class="h-16 w-16 rounded-full object-cover" alt="{{ $author->name }}">
+                                </div>
                             @else
-                                -
+                                <span class="text-gray-400">-</span>
                             @endif
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="2" class="text-center">No authors found.</td>
+                        <td colspan="2" class="py-4 text-gray-500">
+                            No authors found.
+                        </td>
                     </tr>
                 @endforelse
             </tbody>
+
         </table>
     </div>
 
-    <!-- PAGINATION -->
-    <div class="mt-4">
-        {{ $authors->links() }}
-    </div>
 </div>

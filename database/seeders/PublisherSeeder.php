@@ -7,18 +7,33 @@ use App\Models\Publisher;
 
 class PublisherSeeder extends Seeder
 {
-    public function run(): void
+   public function run(): void
     {
         $publishers = [
-            ['name' => 'Penguin Random House', 'logo' => 'logos/penguin.png'],
-            ['name' => 'HarperCollins', 'logo' => 'logos/harpercollins.png'],
-            ['name' => 'Macmillan Publishers', 'logo' => 'logos/macmillan.png'],
-            ['name' => 'Simon & Schuster', 'logo' => 'logos/simon.png'],
-            ['name' => 'Hachette Livre', 'logo' => 'logos/hachette.png'],
+            [
+                'name' => 'Penguin Random House',
+                'logo' => 'https://i0.wp.com/fontlot.com/wp-content/uploads/2022/06/3.jpg?fit=801%2C421&ssl=1',
+            ],
+            [
+                'name' => 'HarperCollins',
+                'logo' => 'https://images.seeklogo.com/logo-png/40/1/harpercollins-publishers-logo-png_seeklogo-401077.png',
+            ],
+            [
+                'name' => 'Macmillan Publishers',
+                'logo' => 'https://th.bing.com/th/id/R.6d7b655758cb8526917a6295349094c1?rik=oq2fUIhWuV8%2ffg&pid=ImgRaw&r=0',
+            ],
+            [
+                'name' => 'Hachette Livre',
+                'logo' => 'https://tse4.mm.bing.net/th/id/OIP.l1WV9X8r_M74eDFVz_5WpwHaHa?rs=1&pid=ImgDetMain&o=7&rm=3',
+            ],
+            [
+                'name' => 'Simon & Schuster',
+                'logo' => 'https://tse2.mm.bing.net/th/id/OIP.UnXzmooP_vswHEN2e-rEtQHaFz?rs=1&pid=ImgDetMain&o=7&rm=3',
+            ],
         ];
 
-        foreach ($publishers as $p) {
-            Publisher::create($p);
+        foreach ($publishers as $publisher) {
+            Publisher::create($publisher);
         }
     }
 }
