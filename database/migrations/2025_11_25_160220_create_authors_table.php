@@ -12,11 +12,11 @@ return new class extends Migration
     public function up(): void
     {
        Schema::create('authors', function (Blueprint $table) {
-    $table->id();
-    $table->string('name');
-    $table->string('photo')->nullable(); // imagepath
-    $table->timestamps();
-    });
+            $table->id();
+            $table->text('name'); // criptografado
+            $table->text('photo')->nullable(); // criptografado, caminho da imagem
+            $table->timestamps();
+        });
 
     }
 

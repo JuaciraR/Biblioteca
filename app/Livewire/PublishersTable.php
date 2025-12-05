@@ -7,9 +7,7 @@ use App\Models\Publisher;
 
 class PublishersTable extends Component
 {
-
-
-     public $search = '';
+    public $search = '';
     public $sortField = 'name';
     public $sortDirection = 'asc';
 
@@ -34,9 +32,7 @@ class PublishersTable extends Component
             );
         }
 
-         $publishers = $publishers->sortBy(function ($p) {
-         return strtolower($p->{$this->sortField} ?? '');
-         });
+        $publishers = $publishers->sortBy(fn($p) => strtolower($p->{$this->sortField} ?? ''));
 
         return view('livewire.publishers-table', [
             'publishers' => $publishers

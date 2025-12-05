@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('publishers', function (Blueprint $table) {
-        $table->id();
-        $table->string('name');
-        $table->timestamps();
-    });
+         Schema::create('publishers', function (Blueprint $table) {
+            $table->id();
+            $table->text('name'); // criptografado, usar text para suportar
+            $table->text('logo')->nullable(); // criptografado, pode ser null
+            $table->timestamps();
+        });
     }
 
     /**

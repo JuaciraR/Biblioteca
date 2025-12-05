@@ -10,6 +10,12 @@ class Publisher extends Model
     use HasFactory;
 
     protected $fillable = ['name', 'logo'];
+
+        protected $casts = [
+        'name' => 'encrypted',
+        'logo' => 'encrypted',
+    ];
+    
      
     public function books()
     {

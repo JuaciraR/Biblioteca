@@ -14,6 +14,11 @@ class Author extends Model
         'photo'
     ];
 
+     protected $casts = [
+        'name' => 'encrypted',
+        'photo' => 'encrypted',
+    ];
+
      
 
      public function books()

@@ -4,14 +4,15 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 use App\Models\Book;
 use App\Models\Publisher;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Auth;
 
 class BooksTable extends Component
 {
-  use WithPagination, WithFileUploads;
+    use WithPagination, WithFileUploads;
 
     public $search = '';
     public $sortField = 'title';
@@ -30,7 +31,7 @@ class BooksTable extends Component
     public $publisher_id;
     public $cover_image;
     public $newCover;
-    public $isModalOpen = false; // nome que a view espera
+    public $isModalOpen = false;
 
     protected $updatesQueryString = [
         'search' => ['except' => ''],
@@ -73,9 +74,18 @@ class BooksTable extends Component
         }
 
         // FILTER
-        if ($this->filterPublisher) {
-            $books = $books->where('publisher_id', $this->filterPublisher);
-        }
+       
+       if ($this->filterPublisher) {
+        $filterId = (int) $this->filterPublisher;
+
+        $books = $books->filter(function ($book) use ($filterId) {
+        return optional($book->publisher)->id === $filterId;
+        });
+       }
+
+
+
+
 
         // SORT
         $books = $books->sortBy(function ($book) {
@@ -109,11 +119,74 @@ class BooksTable extends Component
                 ['path' => request()->url(), 'query' => request()->query()]
             ),
             'publishers' => Publisher::all(),
+            'isAdmin' => Auth::user()?->role === 'Admin',
         ]);
     }
 
-   
-  
+    // Somente Admin pode criar/editar/excluir
+    public function createBook()
+    {
+        if (Auth::user()->role !== 'Admin') abort(403);
+        $this->resetFields();
+        $this->isModalOpen = true;
+    }
 
- 
+   public function editBook($id)
+{
+    if (Auth::user()->role !== 'Admin') abort(403);
+    $book = Book::findOrFail($id);
+    $this->fill($book->toArray());
+    $this->bookId = $book->id;
+    $this->cover_image = $book->cover_image; 
+    $this->isModalOpen = true;
+}
+
+
+  public function saveBook()
+{
+    if (Auth::user()->role !== 'Admin') abort(403);
+
+    $data = $this->validate([
+        'title' => 'required|string|max:255',
+        'isbn' => 'required|string|max:255',
+        'year' => 'nullable|numeric',
+        'price' => 'nullable|numeric',
+        'publisher_id' => 'nullable|exists:publishers,id',
+        'bibliography' => 'nullable|string',
+        'newCover' => 'nullable|image|max:1024',
+    ]);
+
+    // Se houver nova imagem, salva
+    if ($this->newCover) {
+        $data['cover_image'] = $this->newCover->store('covers', 'public');
+    } elseif ($this->bookId) {
+        // Se estiver editando e não enviar nova capa, mantém a existente
+        $book = Book::find($this->bookId);
+        $data['cover_image'] = $book->cover_image;
+    }
+
+    Book::updateOrCreate(['id' => $this->bookId], $data);
+
+    $this->isModalOpen = false;
+    $this->resetFields();
+}
+
+    public function deleteBook($id)
+    {
+        if (Auth::user()->role !== 'Admin') abort(403);
+        Book::findOrFail($id)->delete();
+    }
+
+    private function resetFields()
+    {
+        $this->bookId = null;
+        $this->title = '';
+        $this->isbn = '';
+        $this->year = '';
+        $this->price = '';
+        $this->publisher_id = '';
+        $this->bibliography = '';
+        $this->cover_image = '';
+        $this->newCover = null;
+    }
 }

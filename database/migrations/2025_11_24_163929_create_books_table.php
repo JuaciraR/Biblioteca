@@ -7,15 +7,15 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     public function up(): void
-    {
-        Schema::create('books', function (Blueprint $table) {
+    { 
+         Schema::create('books', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
-            $table->string('isbn')->unique();
-            $table->integer('year')->nullable();
-            $table->decimal('price', 8, 2)->nullable();
+            $table->text('title'); // Antes era string
+            $table->text('isbn');// Antes era string
+            $table->text('year')->nullable(); // Antes era integer
+            $table->text('price')->nullable(); // Antes era decimal
             $table->text('bibliography')->nullable();
-            $table->string('cover_image')->nullable();
+            $table->text('cover_image')->nullable(); // Antes era string
             $table->foreignId('publisher_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
