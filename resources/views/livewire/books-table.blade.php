@@ -56,9 +56,9 @@
 
    
     {{-- BOOKS TABLE --}}
-    <div class="bg-white rounded-xl shadow overflow-x-auto p-4">
+    <div class="bg-black rounded-xl shadow overflow-x-auto p-4">
         <table class="table w-full">
-            <thead class="text-gray-700 bg-gray-100">
+            <thead class="text-black-700 bg-black-100">
                 <tr>
                     {{-- HEADER 1: TITLE --}}
                     <th class="cursor-pointer text-center" wire:click="sortBy('title')">
@@ -101,7 +101,7 @@
 
             <tbody class="text-center">
                 @forelse ($books as $book)
-                    <tr class="hover:bg-gray-50">
+                    <tr class="hover:bg-black-50">
                         {{-- 1. TITLE --}}
                         <td class="font-medium">{{ $book->title }}</td>
                         {{-- 2-6. DADOS --}}
@@ -160,7 +160,7 @@
                 @empty
                     <tr>
                         {{-- Colspan ajustado para 9 colunas no total --}}
-                        <td colspan="9" class="py-4 text-gray-500">
+                        <td colspan="9" class="py-4 text-black-500">
                             No books found.
                         </td>
                     </tr>

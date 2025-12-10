@@ -1,44 +1,30 @@
 <div class="py-12" 
-    x-data="{ showNotification: false, message: '', type: '' }"
+    x-data="{ showNotification: false, alertMessage: '', alertType: '' }"
     x-init="
-        window.addEventListener('show-error', (e) => {
-            message = e.detail[0]; // Recebe a mensagem do array
-            type = 'error';
+        // OUVE O EVENTO 'request-notification' DISPARADO PELO PHP
+        window.addEventListener('request-notification', (e) => {
+            alertMessage = e.detail.message;
+            alertType = e.detail.type; 
             showNotification = true;
-            setTimeout(() => { showNotification = false }, 4000);
-        });
-        window.addEventListener('show-success', (e) => {
-            message = e.detail[0]; // Recebe a mensagem do array
-            type = 'success';
-            showNotification = true;
-            setTimeout(() => { showNotification = false }, 4000);
+            setTimeout(() => { showNotification = false }, 5000); // Esconde após 5s
         });
     "
 >
-    {{-- NOTIFICAÇÃO FLUTUANTE (SweetAlert-style) --}}
-    <div 
-        x-show="showNotification" 
-        x-cloak 
-        x-transition:enter="transition ease-out duration-300" 
-        x-transition:enter-start="opacity-0 transform translate-y-full" 
-        x-transition:enter-end="opacity-100 transform translate-y-0"
-        x-transition:leave="transition ease-in duration-300" 
-        x-transition:leave-start="opacity-100 transform translate-y-0" 
-        x-transition:leave-end="opacity-0 transform translate-y-full"
-        class="fixed bottom-0 right-0 p-4 z-50 transform"
-    >
-        <div :class="{ 'alert-success': type === 'success', 'alert-error': type === 'error' }" class="alert shadow-lg">
-            {{-- Ícones incluídos para feedback visual --}}
-            <svg x-show="type === 'success'" xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <svg x-show="type === 'error'" xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            
-            <span x-text="message"></span>
-        </div>
-    </div>
-
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 space-y-8">
             
+            {{-- NOTIFICAÇÃO FLUTUANTE (SweetAlert-style Pop-up) --}}
+            <div 
+                x-show="showNotification" 
+                x-cloak 
+                x-transition:enter="transition ease-out duration-300" 
+                x-transition:leave="transition ease-in duration-300" 
+                class="fixed bottom-0 right-0 p-4 z-50 transform"
+            >
+                <div :class="{ 'bg-green-500 text-black': alertType === 'success', 'bg-red-500 text-black': alertType === 'error' }" class="p-4 rounded-lg shadow-xl min-w-[300px]">
+                    <p x-text="alertMessage" class="font-semibold"></p>
+                </div>
+            </div>
 
             <div class="flex flex-col md:flex-row gap-8">
                 
@@ -55,11 +41,11 @@
 
                     {{-- Status de Disponibilidade (Visualização) --}}
                     @php
-                        $status = $isAvailable ? 'Disponível' : 'Em Requisição';
+                        $status = $isAvailable ? 'Available' : 'In Request';
                         $status_class = $isAvailable ? 'bg-green-500' : 'bg-red-500';
                     @endphp
                     <span class="px-4 py-1 text-sm font-bold text-white rounded-full {{ $status_class }}">
-                        {{ $status }}
+                        {{ __($status) }}
                     </span>
 
                 </div>
@@ -80,30 +66,30 @@
 
             {{-- HISTÓRICO DE REQUISIÇÕES DO LIVRO --}}
             <div class="mt-8 border-t pt-8">
-                <h2 class="text-2xl font-bold mb-4">{{ __('Histórico de Requisições') }} ({{ $requests->count() }})</h2>
+                <h2 class="text-2xl font-bold mb-4">{{ __('Request History') }} ({{ $requests->count() }})</h2>
                 
                 @if (Auth::user()?->role === 'Cidadao')
-                    <p class="text-sm text-gray-500 mb-4">Apenas as suas requisições para este livro são visíveis.</p>
+                    <p class="text-sm text-gray-500 mb-4">{{ __('Only your requests for this book are visible.') }}</p>
                 @endif
 
                 @if ($requests->isEmpty())
-                    <p class="text-gray-500">{{ __('Este livro ainda não tem histórico de requisições ou você não fez nenhuma.') }}</p>
+                    <p class="text-gray-500">{{ __('This book has no request history yet.') }}</p>
                 @else
                     <div class="overflow-x-auto shadow rounded-lg">
                         <table class="table w-full">
                             <thead class="text-gray-700 bg-gray-100">
                                 <tr>
-                                    <th class="p-3">Utilizador</th>
-                                    <th class="p-3">Estado</th>
-                                    <th class="p-3">Requisitado Em</th>
-                                    <th class="p-3">Data Limite</th>
-                                    <th class="p-3">Devolvido Em</th>
+                                    <th class="p-3">{{ __('User') }}</th>
+                                    <th class="p-3">{{ __('Status') }}</th>
+                                    <th class="p-3">{{ __('Requested On') }}</th>
+                                    <th class="p-3">{{ __('Due Date') }}</th>
+                                    <th class="p-3">{{ __('Received On') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($requests as $req)
                                     <tr class="hover:bg-gray-50">
-                                        <td class="p-3">{{ $req->user->name ?? 'Utilizador Eliminado' }}</td>
+                                        <td class="p-3">{{ $req->user->name ?? 'User Deleted' }}</td>
                                         <td class="p-3">
                                             @php
                                                 $status_class = match($req->status) {

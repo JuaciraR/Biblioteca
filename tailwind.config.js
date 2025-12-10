@@ -2,6 +2,7 @@ import defaultTheme from 'tailwindcss/defaultTheme';
 import forms from '@tailwindcss/forms';
 import typography from '@tailwindcss/typography';
 import daisyui from 'daisyui'; 
+import Alpine from 'alpinejs';
 
 /** @type {import('tailwindcss').Config} */
 export default {

@@ -22,10 +22,9 @@ class BookRequestButton extends Component
 
     protected $listeners = ['requestCreated' => 'checkAvailability']; 
 
-    // CORREÇÃO: Recebe o ID do livro e resolve o objeto, garantindo que o bind funcione.
     public function mount($book)
     {
-        // Se for um Model, usa-o. Se for um ID (que Livewire passa muitas vezes), resolve-o.
+        // Garante que o Model Book seja resolvido corretamente
         $this->book = $book instanceof Book ? $book : Book::findOrFail($book); 
         $this->checkAvailability();
     }
@@ -56,19 +55,31 @@ class BookRequestButton extends Component
     }
 
 
-    public function requestBook()
+   public function requestBook()
     {
         if (!Auth::check()) abort(403);
         
         $this->checkAvailability();
         
         if (!$this->canRequest) {
-            $msg = $this->isAvailable ? 'Request limit of ' . $this->maxPendingBooks . ' books reached.' : 'The book is already in the request process.';
-            $this->dispatch('show-error', $msg)->to(BookDetail::class);
+            $msg = '';
+            $isCitizen = Auth::user()->role === 'Cidadao';
+
+            if (!$this->isAvailable) {
+                // Bloqueado porque o livro está em uso (Indisponível)
+                $msg = 'Request blocked. The book "' . $this->book->title . '" is currently in request process.';
+                
+            } elseif ($isCitizen && $this->userPendingRequestsCount >= $this->maxPendingBooks) {
+                // Bloqueado porque o cidadão atingiu o limite (3 livros)
+                $msg = 'Request blocked! You have reached the limit of ' . $this->maxPendingBooks . ' concurrent requested books.';
+            }
+            
+            // Dispara evento de erro
+            $this->dispatch('request-notification', message: $msg, type: 'error'); 
             return; 
         }
 
-        // --- LÓGICA DE CRIAÇÃO DA REQUISIÇÃO (5 dias & Dados Registrados) ---
+        // --- LÓGICA DE CRIAÇÃO DA REQUISIÇÃO ---
         
         try {
             DB::beginTransaction();
@@ -77,7 +88,7 @@ class BookRequestButton extends Component
             $nextRequestNumber = ($lastRequest ? $lastRequest->request_number : 0) + 1;
 
             $requestedAt = Carbon::now();
-            $dueDate = $requestedAt->copy()->addDays(Book::LOAN_DAYS);
+            $dueDate = $requestedAt->copy()->addDays(\App\Models\Book::LOAN_DAYS);
             
             $request = Request::create([
                 'user_id' => Auth::id(), 
@@ -99,18 +110,21 @@ class BookRequestButton extends Component
             $this->isAvailable = false;
             $successMsg = 'Request #' . $nextRequestNumber . ' submitted successfully! Due date: ' . $dueDate->format('Y-m-d') . '.';
             
-            $this->dispatch('show-success', $successMsg)->to(BookDetail::class);
+            // Disparo de evento de sucesso com nome único
+            $this->dispatch('request-notification', message: $successMsg, type: 'success'); 
             $this->dispatch('requestCreated');
 
         } catch (\Exception $e) {
             DB::rollBack();
             $errorMsg = 'An error occurred while registering the request: ' . $e->getMessage();
-            $this->dispatch('show-error', $errorMsg)->to(BookDetail::class);
+            $this->dispatch('request-notification', message: $errorMsg, type: 'error');
         }
     }
 
+
     public function render()
     {
+        // Se a view BookRequestButton.blade.php não existir, Livewire não renderiza nada
         return view('livewire.book-request-button');
     }
 }

@@ -11,7 +11,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// Áreas protegidas por login
+// Áreas protegidas por login (Acesso por Admin E Cidadão)
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
@@ -22,13 +22,17 @@ Route::middleware([
         return view('dashboard');
     })->name('dashboard');
 
-    // Rotas acessíveis a TODOS os usuários logados (Admin e Cidadão)
-    // Colocamos aqui as rotas que ambos usam (Catálogo, Detalhe, Requisições, Autores)
+    // Rotas de Conteúdo Comum / Acessíveis a todos os logados
     
-    // Rota do Catálogo principal (que carrega a BooksTable)
     Route::view('/books', 'books')->name('books');
 
-    // REQUISITO: Rota para o Detalhe do Livro (Histórico) - Chamar a view container
+    // REQUISITO: Export Excel (ACESSO PARA TODOS OS LOGADOS)
+    // ESTA É A LOCALIZAÇÃO CORRETA DA ROTA DE EXPORTAÇÃO.
+    Route::get('/books/export', function () {
+        return Excel::download(new BooksExport, 'books.xlsx');
+    })->name('books.export');
+
+    // Detalhe do Livro
     Route::get('/books/{book}', function (\App\Models\Book $book) {
         return view('books.show', ['book' => $book]);
     })->name('books.show');
@@ -40,28 +44,16 @@ Route::middleware([
     Route::get('/requests', function () {
         return view('requests'); 
     })->name('requests');
-
-      Route::get('/publishers', function () {
-            return view('publishers', [
-                'component' => PublishersTable::class
-            ]);
-        })->name('publishers');
-        
-
-
-    // --- SOMENTE ADMIN (TODAS ESTAS ROTAS ESTÃO PROTEGIDAS PELO MIDDLEWARE ADMIN) ---
+    
+    // Publishers (acessível a todos logados, mas o conteúdo é restrito pelo middleware abaixo)
+    Route::get('/publishers', function () {
+        return view('publishers', [
+            'component' => PublishersTable::class
+        ]);
+    })->name('publishers');
+    
+    // --- SOMENTE ADMIN (Rotas de Segurança/Criação) ---
     Route::middleware('admin')->group(function () {
-        // Export Excel
-        Route::get('/books/export', function () {
-            return Excel::download(new BooksExport, 'books.xlsx');
-        })->name('books.export');
-
-        // Publishers
-        Route::get('/publishers', function () {
-            return view('publishers', [
-                'component' => PublishersTable::class
-            ]);
-        })->name('publishers');
         
         // CRIAÇÃO DE ADMINS RESTRITA
         Route::view('/admins/create', 'admins.create')->name('admins.create');
@@ -70,6 +62,3 @@ Route::middleware([
     // --- FIM SOMENTE ADMIN ---
 
 });
-
-
-

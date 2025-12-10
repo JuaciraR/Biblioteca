@@ -58,45 +58,63 @@ class BooksTable extends Component
 
         $this->resetPage();
     }
-
-    public function render()
+         public function editBook($id)
     {
-        $books = Book::with('publisher')->get();
+        if (Auth::user()->role !== 'Admin') abort(403);
+        $book = Book::findOrFail($id);
+        
+      
+        $this->publisher_id = $book->publisher_id; 
+        
+        // 1. Carrega todos os dados do livro para as propriedades públicas do Livewire
+        $this->fill($book->toArray()); 
+        
+        // 2. Garante o publisher_id após o fill (redundância segura)
+        $this->publisher_id = $book->publisher_id; 
+        
+        $this->bookId = $book->id;
+        $this->cover_image = $book->cover_image; 
+        
+        $this->isModalOpen = true;
+    }
 
-        // SEARCH
+
+       public function render()
+    {
+        // 1. Inicia a Query com Eager Loading (essencial para dados cifrados)
+        $booksQuery = Book::with('publisher');
+        
+        // 2. Aplicar Filtro de Editora (na Query Builder)
+        if ($this->filterPublisher) {
+            $booksQuery->where('publisher_id', (int) $this->filterPublisher);
+        }
+        
+        // --- CHAVE 1: BUSCAR TODOS OS DADOS COM EAGER LOADING ---
+        $books = $booksQuery->get();
+
+        // 3. Aplicar Pesquisa na Collection (Para dados decifrados)
         if (!empty($this->search)) {
             $searchLower = mb_strtolower($this->search);
+            
             $books = $books->filter(fn($book) =>
                 str_contains(mb_strtolower($book->title ?? ''), $searchLower) ||
                 str_contains(mb_strtolower($book->isbn ?? ''), $searchLower) ||
-                str_contains(mb_strtolower($book->publisher->name ?? ''), $searchLower)
+                // Acesso seguro garantido pelo optional()
+                str_contains(mb_strtolower(optional($book->publisher)->name ?? ''), $searchLower)
             );
         }
 
-        // FILTER
-       
-       if ($this->filterPublisher) {
-        $filterId = (int) $this->filterPublisher;
-
-        $books = $books->filter(function ($book) use ($filterId) {
-        return optional($book->publisher)->id === $filterId;
-        });
-       }
-
-
-
-
-
-        // SORT
+        // 4. Ordenação (Aplicada na Collection, usando dados decifrados)
         $books = $books->sortBy(function ($book) {
             switch ($this->sortField) {
-                case 'publisher_id':
-                    return strtolower($book->publisher->name ?? '');
-                case 'bibliography':
-                    return strtolower($book->bibliography ?? '');
-                case 'cover_image':
-                    return strtolower($book->cover_image ?? '');
-                default:
+                 case 'publisher_id':
+                     // Acessa o nome da editora de forma segura para ordenação
+                     return strtolower(optional($book->publisher)->name ?? ''); 
+                 case 'bibliography':
+                     return strtolower($book->bibliography ?? '');
+                 case 'cover_image':
+                     return strtolower($book->cover_image ?? '');
+                 default:
                     return strtolower($book->{$this->sortField} ?? '');
             }
         });
@@ -105,7 +123,7 @@ class BooksTable extends Component
             $books = $books->reverse();
         }
 
-        // PAGINATION
+        // 5. Paginação Manual
         $perPage = 10;
         $currentPage = $this->page ?? 1;
         $booksPaginated = $books->slice(($currentPage - 1) * $perPage, $perPage)->values();
@@ -123,7 +141,8 @@ class BooksTable extends Component
         ]);
     }
 
-    // Somente Admin pode criar/editar/excluir
+
+  
     public function createBook()
     {
         if (Auth::user()->role !== 'Admin') abort(403);
@@ -131,15 +150,6 @@ class BooksTable extends Component
         $this->isModalOpen = true;
     }
 
-   public function editBook($id)
-{
-    if (Auth::user()->role !== 'Admin') abort(403);
-    $book = Book::findOrFail($id);
-    $this->fill($book->toArray());
-    $this->bookId = $book->id;
-    $this->cover_image = $book->cover_image; 
-    $this->isModalOpen = true;
-}
 
 
   public function saveBook()
