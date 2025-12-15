@@ -123,7 +123,7 @@ class AdminRequestManagement extends Component
         $this->pendingRequestsCount = $allRequests->where('status', 'Pending')->count(); 
     }
     
-    // ... (approveRequest, rejectRequest, confirmReceipt omitidos) ...
+  
 
     public function render()
     {

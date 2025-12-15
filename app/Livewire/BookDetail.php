@@ -35,8 +35,7 @@ class BookDetail extends Component
         }
     }
     
-    // Usaremos um listener global para forçar a renderização após o botão ser clicado
-    // protected $listeners = ['requestCreated' => '$refresh']; 
+ 
 
     /**
      * Devolve APENAS a view Blade.

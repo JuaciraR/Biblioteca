@@ -88,7 +88,7 @@ class BookRequestButton extends Component
             $nextRequestNumber = ($lastRequest ? $lastRequest->request_number : 0) + 1;
 
             $requestedAt = Carbon::now();
-            $dueDate = $requestedAt->copy()->addDays(\App\Models\Book::LOAN_DAYS);
+            $dueDate = $requestedAt->copy()->addDays(Book::LOAN_DAYS);
             
             $request = Request::create([
                 'user_id' => Auth::id(), 

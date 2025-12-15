@@ -89,7 +89,7 @@ class RequestsTable extends Component
         $this->updateMetrics();
     }
     
-    // --- METRICS & QUERY ---
+   
 
     /**
      * Atualiza os indicadores do Admin.

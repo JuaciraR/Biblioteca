@@ -26,8 +26,7 @@ Route::middleware([
     
     Route::view('/books', 'books')->name('books');
 
-    // REQUISITO: Export Excel (ACESSO PARA TODOS OS LOGADOS)
-    // ESTA É A LOCALIZAÇÃO CORRETA DA ROTA DE EXPORTAÇÃO.
+  
     Route::get('/books/export', function () {
         return Excel::download(new BooksExport, 'books.xlsx');
     })->name('books.export');
@@ -45,12 +44,17 @@ Route::middleware([
         return view('requests'); 
     })->name('requests');
     
-    // Publishers (acessível a todos logados, mas o conteúdo é restrito pelo middleware abaixo)
+   
     Route::get('/publishers', function () {
         return view('publishers', [
             'component' => PublishersTable::class
         ]);
     })->name('publishers');
+
+    Route::get('/google-import', function () {
+    return view('google-import');
+})->name('book.google_import');
+
     
     // --- SOMENTE ADMIN (Rotas de Segurança/Criação) ---
     Route::middleware('admin')->group(function () {
