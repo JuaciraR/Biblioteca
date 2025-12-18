@@ -56,4 +56,14 @@ class Book extends Model
             ->whereIn('status', ['Pending', 'Approved'])
             ->doesntExist();
     }
+
+    public function reviews()
+{
+    return $this->hasMany(Review::class)->latest();
+}
+
+public function averageRating()
+{
+    return $this->reviews()->avg('rating') ?? 0;
+}
 }

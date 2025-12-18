@@ -56,6 +56,8 @@ class BookDetail extends Component
         return view('livewire.book-detail', [
             'requests' => $requests,
             'isAvailable' => $isAvailable,
+               'averageRating' => $this->book->averageRating(),
+        'totalReviews' => $this->book->reviews()->count(),
         ]);
     }
 }

@@ -121,4 +121,82 @@
 
         </div>
     </div>
+     
+            {{-- SEÇÃO DE REVIEWS & RATINGS --}}
+            <div class="mt-12 border-t pt-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">{{ __('Reviews & Ratings') }}</h2>
+                    
+                    {{-- Média de Estrelas --}}
+                    <div class="flex items-center space-x-2 bg-indigo-50 px-4 py-2 rounded-lg">
+                        <span class="text-2xl font-black text-indigo-600">{{ number_format($book->averageRating(), 1) }}</span>
+                        <div class="flex text-yellow-400">
+                            @for ($i = 1; $i <= 5; $i++)
+                                <svg class="w-5 h-5 {{ $i <= $book->averageRating() ? 'fill-current' : 'text-gray-300' }}" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            @endfor
+                        </div>
+                        <span class="text-sm text-gray-500">({{ $book->reviews->count() }} reviews)</span>
+                    </div>
+                </div>
+
+                {{-- Lista de Reviews --}}
+                <div class="space-y-6 mb-10">
+                    @forelse ($book->reviews as $review)
+                        <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm transition hover:shadow-md">
+                            <div class="flex justify-between items-start mb-3">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold">
+                                        {{ substr($review->user->name, 0, 1) }}
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-gray-900">{{ $review->user->name }}</p>
+                                        <p class="text-xs text-gray-400">{{ $review->created_at->diffForHumans() }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex text-yellow-400">
+                                    @for ($i = 1; $i <= 5; $i++)
+                                        <svg class="w-4 h-4 {{ $i <= $review->rating ? 'fill-current' : 'text-gray-200' }}" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                    @endfor
+                                </div>
+                            </div>
+                            <p class="text-gray-700 leading-relaxed italic">"{{ $review->comment }}"</p>
+                        </div>
+                    @empty
+                        <div class="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                            <p class="text-gray-400">{{ __('No reviews yet. Be the first to share your thoughts!') }}</p>
+                        </div>
+                    @endforelse
+                </div>
+
+                {{-- FORMULÁRIO DE REVIEW --}}
+                <div class="mt-8 border-t pt-8">
+                    @php
+                        $isCitizen = Auth::check() && Auth::user()->role === 'Cidadao';
+                        $canReview = false; 
+                        
+                        // Verifica se o utilizador tem alguma requisição com estado 'Received' (Devolvido)
+                        if ($isCitizen) {
+                            foreach ($requests as $req) {
+                                if ($req->status === 'Received') {
+                                    $canReview = true;
+                                    break;
+                                }
+                            }
+                        }
+                    @endphp
+
+                    @if ($canReview)
+                        <div class="max-w-xl mx-auto">
+                            <livewire:review-form :book-id="$book->id" :key="'review-form-'.$book->id" />
+                        </div>
+                    @elseif ($isCitizen)
+                        <p class="text-gray-500 text-center">{{ __('The review form will become available after you have returned the book.') }}</p>
+                    @else
+                        <p class="text-gray-500 text-center text-sm italic">{{ __('Reviews are submitted by readers who have borrowed and returned this book.') }}</p>
+                    @endif
+                </div>
+            </div>
+
+        </div>
+    </div>
 </div>
