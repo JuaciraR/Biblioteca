@@ -6,6 +6,7 @@ use App\Livewire\BookDetail;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\BooksExport;
 use App\Livewire\RequestsTable;
+use App\Livewire\AdminReviewManagement;
 
 Route::get('/', function () {
     return view('welcome');
@@ -61,6 +62,11 @@ Route::middleware([
         
         // CRIAÇÃO DE ADMINS RESTRITA
         Route::view('/admins/create', 'admins.create')->name('admins.create');
+
+         Route::get('/admin/reviews', function () {
+            return view('admin-review');
+        })->name('admin.reviews');
+
 
     });
     // --- FIM SOMENTE ADMIN ---

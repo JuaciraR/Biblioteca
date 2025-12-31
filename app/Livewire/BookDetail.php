@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Livewire;
-
 use Livewire\Component;
 use App\Models\Book;
 use Illuminate\Support\Facades\Auth;
@@ -11,7 +10,7 @@ class BookDetail extends Component
     public Book $book;
     public $isAdmin;
     
-    // Variáveis de estado para mensagens
+    public $relatedBooks = [];
     public $flashMessage = null;
     public $flashMessageType = null;
 
@@ -19,13 +18,11 @@ class BookDetail extends Component
     {
         $this->book = $book->load('publisher');
         $this->isAdmin = Auth::check() && Auth::user()->role === 'Admin';
+        $this->relatedBooks = $this->book->getRelatedBooks(5);
     }
 
-    // Este método é chamado para garantir que o componente atualize após a ação do botão
     public function hydrate()
     {
-        // Se houver uma mensagem flash na sessão (disparada pelo BookRequestButton),
-        // puxamos para as propriedades públicas para que o HTML a exiba.
         if (session()->has('success')) {
             $this->flashMessageType = 'success';
             $this->flashMessage = session('success');
@@ -34,30 +31,29 @@ class BookDetail extends Component
             $this->flashMessage = session('error');
         }
     }
-    
- 
 
-    /**
-     * Devolve APENAS a view Blade.
-     */
     public function render()
     {
         $requestsQuery = $this->book->requests()->with('user')
                                 ->orderByDesc('requested_at');
 
-        // Filtro para Cidadão
         if (Auth::check() && Auth::user()->role === 'Cidadao' && !$this->isAdmin) {
              $requestsQuery->where('user_id', Auth::id());
         }
         
-        $requests = $requestsQuery->get();
-        $isAvailable = $this->book->isAvailableForRequest();
+        //apenas as reviews ATIVAS para a listagem pública
+        $activeReviews = $this->book->reviews()
+            ->where('status', 'active')
+            ->with('user')
+            ->latest()
+            ->get();
 
         return view('livewire.book-detail', [
-            'requests' => $requests,
-            'isAvailable' => $isAvailable,
-               'averageRating' => $this->book->averageRating(),
-        'totalReviews' => $this->book->reviews()->count(),
+            'requests' => $requestsQuery->get(),
+            'isAvailable' => $this->book->isAvailableForRequest(),
+            'activeReviews' => $activeReviews, // Passamos a variável filtrada
+            'averageRating' => $this->book->averageRating(),
+            'totalReviews' => $activeReviews->count(), // Contamos apenas as visíveis
         ]);
     }
 }

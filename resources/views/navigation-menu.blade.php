@@ -34,6 +34,10 @@
                          <x-nav-link href="{{ route('admins.create') }}" :active="request()->routeIs('admins.create')">
                             Create Admin
                         </x-nav-link>
+                             
+                          <x-nav-link href="{{ route('admin.reviews') }}" :active="request()->routeIs('admin.reviews')">
+                            Manage Reviews
+                         </x-nav-link>
                          @endif
                     
 

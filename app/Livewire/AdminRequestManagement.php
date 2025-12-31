@@ -6,10 +6,12 @@ use Livewire\Component;
 use App\Models\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\RequestConfirmationMail; 
+use App\Mail\BookAvailableMail;
+use App\Models\AvailabilityAlert;
 use Carbon\Carbon;
 use App\Mail\RequestApprovedMail; 
 use App\Mail\RequestRejectedMail; 
+use Illuminate\Support\Facades\Log;
 
 class AdminRequestManagement extends Component
 {
@@ -80,33 +82,47 @@ class AdminRequestManagement extends Component
         }
     }
   
-    public function confirmReceipt(Request $request)
+     public function confirmReceipt(Request $request)
     {
         if ($request->status !== 'Approved') {
-            $this->message = 'O livro ainda não foi aprovado para empréstimo ou já foi devolvido.';
+            $this->message = 'Book must be Approved before return.';
             $this->messageType = 'error';
             return;
         }
 
         try {
+            // 1. Update Status
             $request->update([
                 'status' => 'Received',
                 'received_at' => Carbon::now(),
             ]);
             
-            // Cálculo dos dias decorridos (Requisito)
+            // --- CHALLENGE 3 LOGIC ---
+            // Find alerts for this book
+            $alerts = AvailabilityAlert::where('book_id', $request->book_id)->with('user')->get();
+            
+            Log::info("Processing alerts for Book {$request->book_id}. Count: " . $alerts->count());
+
+            foreach ($alerts as $alert) {
+                if ($alert->user && $alert->user->email) {
+                    // Send the "Book is back" email
+                    Mail::to($alert->user->email)->send(new BookAvailableMail($request->book));
+                }
+                $alert->delete(); // Clear from queue
+            }
+            // --- END CHALLENGE 3 ---
+
             $daysElapsed = $request->requested_at ? $request->received_at->diffInDays($request->requested_at) : 0;
             
-            $alertMessage = 'Devolução do livro ' . $request->book->title . ' (Nº ' . $request->request_number . ') CONFIRMADA. Dias de empréstimo: ' . $daysElapsed . '.';
-            $this->message = $alertMessage;
+            $this->message = 'Return confirmed. ' . $alerts->count() . ' users notified. Loan days: ' . $daysElapsed;
             $this->messageType = 'success';
 
         } catch (\Exception $e) {
-            $this->message = 'Erro ao confirmar a receção: ' . $e->getMessage();
-            $this->messageType = 'error';
+            Log::error('Error in confirmReceipt: ' . $e->getMessage());
+            $this->message = 'Return processed, but notifications failed: ' . $e->getMessage();
+            $this->messageType = 'warning';
         }
     }
-
 
     // Método que calcula as métricas (usado pelo Admin)
     public function updateMetrics()

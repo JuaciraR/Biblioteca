@@ -10,10 +10,11 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\RequestConfirmationMail; 
-
+use App\Models\AvailabilityAlert;
 class BookRequestButton extends Component
 {
     public Book $book;
+     public $hasAlert = false;
     
     public bool $isAvailable = true; 
     public $maxPendingBooks = 3; 
@@ -27,6 +28,7 @@ class BookRequestButton extends Component
         // Garante que o Model Book seja resolvido corretamente
         $this->book = $book instanceof Book ? $book : Book::findOrFail($book); 
         $this->checkAvailability();
+          $this->checkAlertStatus();
     }
     
     public function checkAvailability()
@@ -121,6 +123,32 @@ class BookRequestButton extends Component
         }
     }
 
+
+
+       public function checkAlertStatus()
+    {
+        if (Auth::check()) {
+            $this->hasAlert = AvailabilityAlert::where('user_id', Auth::id())
+                ->where('book_id', $this->book->id)
+                ->exists();
+        }
+    }
+     public function subscribeToAlert()
+    {
+        if (!Auth::check()) return;
+
+        AvailabilityAlert::firstOrCreate([
+            'user_id' => Auth::id(),
+            'book_id' => $this->book->id
+        ]);
+
+        $this->hasAlert = true;
+        
+        $this->dispatch('request-notification', [
+            'message' => 'Alert activated! We will email you once it is available.',
+            'type' => 'success'
+        ]);
+    }
 
     public function render()
     {

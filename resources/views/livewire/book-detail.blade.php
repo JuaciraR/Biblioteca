@@ -61,8 +61,26 @@
                         <h2 class="text-xl font-semibold mb-2">{{ __('Bibliography / Summary') }}</h2>
                         <p class="text-gray-700">{{ $book->bibliography ?? 'No summary provided.' }}</p>
                     </div>
+                     @if(isset($relatedBooks) && count($relatedBooks) > 0)
+                        <div class="mt-6 pt-4 border-t border-gray-100">
+                            <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 italic">Related Books</h3>
+                            <div class="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+                                @foreach($relatedBooks as $related)
+                                    <a href="{{ route('books.show', $related->id) }}" class="flex-shrink-0 w-20 group">
+                                        <div class="aspect-[2/3] relative rounded shadow-sm overflow-hidden bg-gray-100">
+                                            <img src="{{ $related->cover_image ?? 'https://placehold.co/100x150?text=No+Cover' }}" 
+                                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                        </div>
+                                        <p class="text-[9px] font-bold mt-1 truncate text-gray-700 group-hover:text-blue-600">{{ $related->title }}</p>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                       
                 </div>
             </div>
+
 
             {{-- HISTÓRICO DE REQUISIÇÕES DO LIVRO --}}
             <div class="mt-8 border-t pt-8">
@@ -122,6 +140,8 @@
         </div>
     </div>
      
+     
+ 
             {{-- SEÇÃO DE REVIEWS & RATINGS --}}
             <div class="mt-12 border-t pt-8">
                 <div class="flex items-center justify-between mb-6">
@@ -141,32 +161,42 @@
 
                 {{-- Lista de Reviews --}}
                 <div class="space-y-6 mb-10">
-                    @forelse ($book->reviews as $review)
-                        <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm transition hover:shadow-md">
-                            <div class="flex justify-between items-start mb-3">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold">
-                                        {{ substr($review->user->name, 0, 1) }}
-                                    </div>
-                                    <div>
-                                        <p class="font-bold text-gray-900">{{ $review->user->name }}</p>
-                                        <p class="text-xs text-gray-400">{{ $review->created_at->diffForHumans() }}</p>
-                                    </div>
-                                </div>
-                                <div class="flex text-yellow-400">
-                                    @for ($i = 1; $i <= 5; $i++)
-                                        <svg class="w-4 h-4 {{ $i <= $review->rating ? 'fill-current' : 'text-gray-200' }}" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                                    @endfor
-                                </div>
-                            </div>
-                            <p class="text-gray-700 leading-relaxed italic">"{{ $review->comment }}"</p>
+        @forelse ($activeReviews as $review)
+            <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm transition hover:shadow-md">
+                <div class="flex justify-between items-start mb-3">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold">
+                            {{ substr($review->user->name, 0, 1) }}
                         </div>
-                    @empty
-                        <div class="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                            <p class="text-gray-400">{{ __('No reviews yet. Be the first to share your thoughts!') }}</p>
+                        <div>
+                            <p class="font-bold text-gray-900">{{ $review->user->name }}</p>
+                            <p class="text-xs text-gray-400">{{ $review->created_at->diffForHumans() }}</p>
                         </div>
-                    @endforelse
-                </div>
+                    </div>
+                   
+                        <div class="flex items-center gap-0.5 bg-white px-2 py-1 rounded-lg shadow-sm border border-gray-100">
+                            @for ($i = 1; $i <= 5; $i++)
+                                <svg 
+                                    class="w-4 h-4 {{ $i <= $review->rating ? 'text-yellow-400' : 'text-gray-200' }} fill-current" 
+                                    viewBox="0 0 20 20" 
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                </svg>
+                            @endfor
+                            <span class="ml-1 text-[10px] font-black text-gray-600">{{ $review->rating }}/5</span>
+                        </div>
+                    </div>
+                    
+            
+                <p class="text-gray-700 leading-relaxed italic">"{{ $review->comment }}"</p>
+            </div>
+        @empty
+            <div class="text-center py-8 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                <p class="text-gray-400">{{ __('No approved reviews yet.') }}</p>
+            </div>
+        @endforelse
+    </div>
 
                 {{-- FORMULÁRIO DE REVIEW --}}
                 <div class="mt-8 border-t pt-8">

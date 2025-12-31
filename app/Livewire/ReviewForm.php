@@ -4,7 +4,10 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\Review;
+use App\Models\User; //  To find administrators
+use App\Mail\ReviewNotificationMail; 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class ReviewForm extends Component
 {
@@ -40,15 +43,15 @@ class ReviewForm extends Component
     }
 
     /**
-     * Submits the review (Creates or Updates)
+     * Submits the review (Creates or Updates) and notifies Admins
      */
     public function submitReview()
     {
         $this->validate();
 
         try {
-            // Uses of updateOrCreate to allow the user to edit/update the review
-            Review::updateOrCreate(
+            // 1. Save or Update the review in the database
+            $review = Review::updateOrCreate(
                 [
                     'book_id' => $this->bookId,
                     'user_id' => Auth::id(),
@@ -59,10 +62,22 @@ class ReviewForm extends Component
                 ]
             );
 
-            session()->flash('review_success', 'Your review was submitted successfully!');
+            // 2. FIND ADMINISTRATORS: Search for all users with the role 'Admin'
+            $admins = User::where('role', 'Admin')->get();
+            
+            // 3. SEND EMAIL: Loop through each admin and send the notification
+            if ($admins->isNotEmpty()) {
+                foreach ($admins as $admin) {
+                    // This uses the ReviewNotificationMail file you created
+                    Mail::to($admin->email)->send(new ReviewNotificationMail($review));
+                }
+            }
+
+            session()->flash('review_success', 'Your review was submitted and administrators have been notified!');
             
         } catch (\Exception $e) {
-            session()->flash('review_error', 'An error occurred while submitting the review. Please try again.');
+            // If there's a mail error (like wrong SMTP config), it will show here
+            session()->flash('review_error', 'An error occurred: ' . $e->getMessage());
         }
     }
 

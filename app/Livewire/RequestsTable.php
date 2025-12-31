@@ -4,7 +4,11 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\Request;
+use App\Models\AvailabilityAlert;
+use App\Mail\BookAvailableMail; 
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class RequestsTable extends Component
@@ -65,30 +69,61 @@ class RequestsTable extends Component
     /**
      * Confirma a boa receção (devolução) do livro pelo Cidadão.
      */
-    public function confirmReception($id)
+     public function confirmReception($id)
     {
         if (Auth::user()?->role !== 'Admin') abort(403);
 
-        $req = Request::findOrFail($id);
+        // We load the 'book' relation to ensure data is available for the email template
+        $req = Request::with('book')->findOrFail($id);
 
-        // Só pode confirmar se o estado estiver 'Approved' (livro foi levantado)
         if ($req->status !== 'Approved') {
             session()->flash('error', 'Reception can only be confirmed for Approved requests.');
             return;
         }
 
-        $req->update([
-            'status' => 'Received', // Novo estado final
-            'received_at' => Carbon::now(),
-        ]);
-        
-        // Regra de Negócio: calcular os dias decorridos (requested_at -> received_at)
-        $daysElapsed = $req->requested_at ? $req->received_at->diffInDays($req->requested_at) : 0;
-        
-        session()->flash('success', 'Request #' . $req->request_number . ' marked as received. Days elapsed: ' . $daysElapsed . '.');
+        try {
+            // 1. Update request status (This makes the book technically available in the logic)
+            $req->update([
+                'status' => 'Received',
+                'received_at' => Carbon::now(),
+            ]);
+
+            // --- CHALLENGE 3 LOGIC (ALERTS) ---
+            
+            // 2. Find all users who subscribed to an alert for this specific book
+            $alerts = AvailabilityAlert::where('book_id', $req->book_id)->with('user')->get();
+
+            Log::info("Book {$req->book_id} returned. Alerts found: " . $alerts->count());
+
+            foreach ($alerts as $alert) {
+                // 3. Send the notification email if user and email exist
+                if ($alert->user && $alert->user->email) {
+                    Mail::to($alert->user->email)->send(new BookAvailableMail($req->book));
+                    Log::info("Availability alert email sent to: " . $alert->user->email);
+                }
+                
+                // 4. Remove the alert from database (one-time notification completed)
+                $alert->delete();
+            }
+
+            // --- END OF CHALLENGE 3 LOGIC ---
+            
+            $daysElapsed = $req->requested_at ? $req->received_at->diffInDays($req->requested_at) : 0;
+            
+            $msg = 'Request #' . $req->request_number . ' marked as received.';
+            if ($alerts->count() > 0) {
+                $msg .= ' ' . $alerts->count() . ' users were notified by email.';
+            }
+
+            session()->flash('success', $msg);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to process availability alerts: ' . $e->getMessage());
+            session()->flash('warning', 'Book received, but email notifications failed.');
+        }
+
         $this->updateMetrics();
     }
-    
    
 
     /**
@@ -109,6 +144,8 @@ class RequestsTable extends Component
 
     public function render()
     { 
+         $this->updateMetrics();
+
         $requestsQuery = Request::with('user', 'book')->latest('id');
 
         // Regra de Negócio: Cidadão vê apenas as suas requisições.
