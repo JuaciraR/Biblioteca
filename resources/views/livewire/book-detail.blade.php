@@ -50,17 +50,44 @@
 
                 </div>
                 
-                {{-- DETALHES DO LIVRO --}}
-                <div class="md:w-2/3 space-y-4">
-                    <h1 class="text-3xl font-bold">{{ $book->title }}</h1>
-                    <p class="text-lg text-gray-600"><strong>{{ __('ISBN') }}:</strong> {{ $book->isbn }}</p>
-                    <p class="text-lg text-gray-600"><strong>{{ __('Publisher') }}:</strong> {{ $book->publisher->name ?? 'N/A' }}</p>
-                    <p class="text-lg text-gray-600"><strong>{{ __('Year') }}:</strong> {{ $book->year ?? 'N/A' }}</p>
-                    <p class="text-lg text-gray-600"><strong>{{ __('Price') }}:</strong> {{ $book->price ? '€'.number_format($book->price, 2) : 'N/A' }}</p>
-                    <div class="border-t pt-4">
-                        <h2 class="text-xl font-semibold mb-2">{{ __('Bibliography / Summary') }}</h2>
-                        <p class="text-gray-700">{{ $book->bibliography ?? 'No summary provided.' }}</p>
+        
+                  {{-- BOOK DETAILS (TARGET SECTION) --}}
+                <div class="md:w-2/3 space-y-6">
+                    <div>
+                        <h1 class="text-4xl font-black text-gray-900 leading-tight mb-2">{{ $book->title }}</h1>
+                        <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-500 border-b border-gray-100 pb-4">
+                            <p><strong>{{ __('ISBN') }}:</strong> {{ $book->isbn }}</p>
+                            <p><strong>{{ __('Publisher') }}:</strong> {{ $book->publisher->name ?? 'N/A' }}</p>
+                            <p><strong>{{ __('Year') }}:</strong> {{ $book->year ?? 'N/A' }}</p>
+                        </div>
                     </div>
+                {{-- PURCHASE SECTION: Price highlight and Add to Cart --}}
+                    <div class="bg-gray-50 p-6 rounded-3xl border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-6">
+                        <div class="text-center sm:text-left">
+                            <span class="text-[10px] font-black text-indigo-500 uppercase tracking-widest block mb-1">Direct Purchase</span>
+                            <p class="text-4xl font-black text-gray-900">
+                                {{ $book->price ? '€'.number_format($book->price, 2) : 'N/A' }}
+                            </p>
+                        </div>
+
+                        @if($book->price > 0)
+                            <button 
+                                wire:click="addToCart" 
+                                wire:loading.attr="disabled"
+                                class="w-full sm:w-auto bg-gray-900 hover:bg-indigo-600 text-white font-bold py-4 px-10 rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 shadow-xl hover:shadow-indigo-200 group"
+                            >
+                                <svg wire:loading.remove class="w-5 h-5 transform group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                                <span wire:loading.remove>Add to Cart</span>
+                                <span wire:loading>Adding...</span>
+                            </button>
+                        @endif
+                    </div>
+
+                    <div class="space-y-3">
+                        <h2 class="text-xl font-bold text-gray-900">{{ __('Bibliography / Summary') }}</h2>
+                        <p class="text-gray-600 leading-relaxed text-sm">{{ $book->bibliography ?? 'No summary provided.' }}</p>
+                    </div>
+
                      @if(isset($relatedBooks) && count($relatedBooks) > 0)
                         <div class="mt-6 pt-4 border-t border-gray-100">
                             <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 italic">Related Books</h3>
@@ -83,63 +110,79 @@
 
 
             {{-- HISTÓRICO DE REQUISIÇÕES DO LIVRO --}}
-            <div class="mt-8 border-t pt-8">
-                <h2 class="text-2xl font-bold mb-4">{{ __('Request History') }} ({{ $requests->count() }})</h2>
-                
-                @if (Auth::user()?->role === 'Cidadao')
-                    <p class="text-sm text-gray-500 mb-4">{{ __('Only your requests for this book are visible.') }}</p>
-                @endif
+           <div class="mt-12 border-t-2 border-gray-200 pt-8">
+    {{-- Título Principal com contraste máximo --}}
+    <h2 class="text-3xl font-black mb-6 text-gray-900 uppercase tracking-tighter italic">
+        {{ __('Request History') }} <span class="text-indigo-600">({{ $requests->count() }})</span>
+    </h2>
+    
+    @if (Auth::user()?->role === 'Cidadao')
+        {{-- Texto de aviso mais escuro e visível --}}
+        <p class="text-xs font-black text-gray-700 mb-6 uppercase tracking-widest bg-gray-50 p-3 rounded-lg border border-gray-200 inline-block">
+            <i class="fas fa-info-circle mr-2 text-indigo-500"></i>
+            {{ __('Only your requests for this book are visible.') }}
+        </p>
+    @endif
 
-                @if ($requests->isEmpty())
-                    <p class="text-gray-500">{{ __('This book has no request history yet.') }}</p>
-                @else
-                    <div class="overflow-x-auto shadow rounded-lg">
-                        <table class="table w-full">
-                            <thead class="text-gray-700 bg-gray-100">
-                                <tr>
-                                    <th class="p-3">{{ __('User') }}</th>
-                                    <th class="p-3">{{ __('Status') }}</th>
-                                    <th class="p-3">{{ __('Requested On') }}</th>
-                                    <th class="p-3">{{ __('Due Date') }}</th>
-                                    <th class="p-3">{{ __('Received On') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($requests as $req)
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="p-3">{{ $req->user->name ?? 'User Deleted' }}</td>
-                                        <td class="p-3">
-                                            @php
-                                                $status_class = match($req->status) {
-                                                    'Approved' => 'badge-success',
-                                                    'Rejected' => 'badge-error',
-                                                    'Received' => 'badge-info',
-                                                    'Pending' => 'badge-warning',
-                                                    default => 'badge-neutral',
-                                                };
-                                            @endphp
-                                            <span class="badge {{ $status_class }} text-white font-bold">{{ $req->status }}</span>
-                                        </td>
-                                        <td class="p-3">{{ $req->requested_at?->format('Y-m-d') ?? '-' }}</td>
-                                        <td class="p-3">{{ $req->due_date?->format('Y-m-d') ?? '-' }}</td>
-                                        <td class="p-3">
-                                            @if($req->received_at)
-                                                {{ $req->received_at->format('Y-m-d') }}
-                                            @else
-                                                <span class="text-gray-400">N/A</span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @endif
-            </div>
-
+    @if ($requests->isEmpty())
+        <div class="p-10 bg-white rounded-2xl border-2 border-dashed border-gray-200 text-center">
+            <p class="text-gray-500 font-bold italic">{{ __('This book has no request history yet.') }}</p>
         </div>
-    </div>
-     
+    @else
+        <div class="overflow-hidden shadow-2xl rounded-[2rem] border-2 border-gray-200 bg-white">
+            <table class="table w-full border-collapse">
+                {{-- Cabeçalho com fundo cinza visível e texto preto --}}
+                <thead class="bg-gray-100 border-b-2 border-gray-300">
+                    <tr class="text-gray-900 font-black uppercase text-[11px] tracking-widest text-center">
+                        <th class="p-4">{{ __('User') }}</th>
+                        <th class="p-4">{{ __('Status') }}</th>
+                        <th class="p-4">{{ __('Requested On') }}</th>
+                        <th class="p-4">{{ __('Due Date') }}</th>
+                        <th class="p-4">{{ __('Received On') }}</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 text-center">
+                    @foreach($requests as $request)
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            {{-- User Info - Texto Negrito --}}
+                            <td class="p-4">
+                                <p class="font-black text-gray-900 text-sm">{{ $request->user->name }}</p>
+                                <p class="text-[10px] text-gray-600 font-medium">{{ $request->user->email }}</p>
+                            </td>
+                            
+                            {{-- Status Badge com Contraste --}}
+                            <td class="p-4">
+                                @php
+                                    $statusClasses = [
+                                        'pending' => 'bg-amber-100 text-amber-900 border-amber-300',
+                                        'approved' => 'bg-emerald-100 text-emerald-900 border-emerald-300',
+                                        'rejected' => 'bg-rose-100 text-rose-900 border-rose-300',
+                                        'returned' => 'bg-indigo-100 text-indigo-900 border-indigo-300',
+                                    ];
+                                    $currentClass = $statusClasses[$request->status] ?? 'bg-gray-100 text-gray-800 border-gray-300';
+                                @endphp
+                                <span class="px-3 py-1.5 rounded-full text-[10px] font-black uppercase border {{ $currentClass }}">
+                                    {{ __($request->status) }}
+                                </span>
+                            </td>
+
+                            {{-- Datas com Texto Escuro --}}
+                            <td class="p-4 text-gray-800 font-bold text-sm">
+                                {{ $request->created_at->format('d M Y') }}
+                            </td>
+                            <td class="p-4 text-gray-800 font-bold text-sm">
+                                {{ $request->due_date ? $request->due_date->format('d M Y') : '-' }}
+                            </td>
+                            <td class="p-4 text-gray-800 font-bold text-sm">
+                                {{ $request->returned_at ? $request->returned_at->format('d M Y') : '-' }}
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
+</div>
      
  
             {{-- SEÇÃO DE REVIEWS & RATINGS --}}

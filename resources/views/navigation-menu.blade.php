@@ -14,6 +14,10 @@
                         Dashboard
                     </x-nav-link>
 
+                     {{-- CART ICON: Added the 'cart.' prefix to match your folder structure --}}
+                           <div class="inline-flex items-center h-16 pt-1">
+        @livewire('cart.cart-icon')
+    </div>
                     {{-- Links para TODOS os usuários autenticados --}}
                     <x-nav-link href="{{ route('authors.index') }}" :active="request()->routeIs('authors.index')">
                         Authors
@@ -38,6 +42,11 @@
                           <x-nav-link href="{{ route('admin.reviews') }}" :active="request()->routeIs('admin.reviews')">
                             Manage Reviews
                          </x-nav-link>
+
+                         {{-- ADICIONE ESTE LINK ABAIXO --}}
+    <x-nav-link href="{{ route('admin.orders') }}" :active="request()->routeIs('admin.orders')">
+        Manage Orders
+    </x-nav-link>
                          @endif
                     
 

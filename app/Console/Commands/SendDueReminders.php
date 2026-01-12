@@ -45,7 +45,7 @@ class SendDueReminders extends Command
             }
         }
 
-        // CORREÇÃO: Retorna o valor inteiro (0) em vez da constante estática, que é mais robusto.
+        // Retorna o valor inteiro (0) em vez da constante estática, que é mais robusto.
         return 0; 
     }
 }

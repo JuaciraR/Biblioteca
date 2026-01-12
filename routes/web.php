@@ -6,7 +6,12 @@ use App\Livewire\BookDetail;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\BooksExport;
 use App\Livewire\RequestsTable;
+use App\Livewire\Cart\CartPage;
+use App\Livewire\Cart\Checkout;
 use App\Livewire\AdminReviewManagement;
+use App\Http\Controllers\CheckoutController;
+use App\Livewire\Admin\OrderList;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -44,7 +49,8 @@ Route::middleware([
     Route::get('/requests', function () {
         return view('requests'); 
     })->name('requests');
-    
+    Route::get('/basket', CartPage::class)->name('cart');
+Route::get('/checkout', Checkout::class)->name('checkout');
    
     Route::get('/publishers', function () {
         return view('publishers', [
@@ -56,6 +62,19 @@ Route::middleware([
     return view('google-import');
 })->name('book.google_import');
 
+
+Route::get('/basket', function () {
+    return view('cart-page');
+})->name('cart');
+
+// Checkout Route
+Route::get('/checkout', function () {
+    return view('checkout-page');
+})->name('checkout');
+
+// Payment Flow Routes
+Route::get('/checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
+Route::get('/checkout/cancel', [CheckoutController::class, 'cancel'])->name('checkout.cancel');
     
     // --- SOMENTE ADMIN (Rotas de Segurança/Criação) ---
     Route::middleware('admin')->group(function () {
@@ -67,8 +86,17 @@ Route::middleware([
             return view('admin-review');
         })->name('admin.reviews');
 
+    Route::get('/admin/management', function () {
+        return view('admin-orders'); 
+    })->name('admin.management');
+
+   
+    Route::get('/admin/orders', function () {
+        return view('order-management'); 
+    })->name('admin.orders');
 
     });
-    // --- FIM SOMENTE ADMIN ---
+
+
 
 });

@@ -10,13 +10,15 @@
                wire:model.live="search"/>
 
         {{-- PUBLISHER FILTER --}}
-        <select wire:model.live="filterPublisher" 
-                class="select select-bordered w-full md:w-1/4">
-            <option value="">All Publishers</option>
-            @foreach($publishers as $publisher)
-                <option value="{{ $publisher->id }}">{{ $publisher->name }}</option>
-            @endforeach
-        </select>
+       <select wire:model.live="filterPublisher" 
+        class="select select-bordered w-full md:w-1/4 border-2 border-gray-500 text-gray-900 font-black text-sm bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-600 appearance-none">
+    <option value="" class="font-bold text-gray-500">All Publishers</option>
+    @foreach($publishers as $publisher)
+        <option value="{{ $publisher->id }}" class="text-gray-900 font-semibold">
+            {{ $publisher->name }}
+        </option>
+    @endforeach
+</select>
 
         <div class="ml-auto flex gap-3">
             {{-- EXPORT BUTTON --}}
@@ -101,7 +103,7 @@
 
             <tbody class="text-center">
                 @forelse ($books as $book)
-                    <tr class="hover:bg-black-50">
+                    <tr class="hover:bg-blue-50">
                         {{-- 1. TITLE --}}
                         <td class="font-medium">{{ $book->title }}</td>
                         {{-- 2-6. DADOS --}}
@@ -128,7 +130,7 @@
                                 $status = $isAvailable ? 'Available' : 'In Request';
                                 $status_class = $isAvailable ? 'badge-success' : 'badge-error';
                             @endphp
-                            <span class="badge {{ $status_class }} text-black font-bold">{{ __($status) }}</span>
+                            <span class="badge {{ $status_class }} text-white font-bold">{{ __($status) }}</span>
                         </td>
 
                         {{-- 9. ACTION COLUMN (Corrigido para 100% de funcionalidade e interface) --}}
@@ -142,11 +144,11 @@
                             @if($isAdmin)
                                 {{-- ADMIN ACTIONS: CRUD --}}
                                 <button wire:click="editBook({{ $book->id }})" 
-                                    class="btn btn-xs btn-warning text-black">
+                                    class="btn btn-xs btn-warning text-white">
                                     Edit
                                 </button>
                                 <button wire:click="deleteBook({{ $book->id }})"
-                                    class="btn btn-xs btn-error text-black">
+                                    class="btn btn-xs btn-error text-white">
                                     Delete
                                 </button>
                             @endif
@@ -177,49 +179,50 @@
         {{ $books->links() }}
     </div>
 {{-- MODAL (EDIT/CREATE) --}}
-
 @if ($isModalOpen)
-<div class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+<div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
     
-    <div class="bg-white rounded-xl shadow-xl w-full max-w-md h-auto max-h-[90vh] flex flex-col">
+    {{-- MODAL CONTAINER: Adicionamos h-[95vh] e flex-col --}}
+    <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-md h-auto max-h-[95vh] flex flex-col border-2 border-gray-200">
 
-        <div class="p-6 pb-0 flex-shrink-0">
-            <h2 class="text-2xl font-semibold">
+        {{-- HEADER: Fixed at the top --}}
+        <div class="p-8 pb-4 flex-shrink-0 border-b border-gray-100">
+            <h2 class="text-3xl font-black text-gray-900 uppercase tracking-tighter italic">
                 {{ $bookId ? 'Edit Book' : 'Add Book' }}
             </h2>
         </div>
 
+        {{-- FORM BODY: This is the part that will scroll --}}
         <form wire:submit.prevent="saveBook" id="bookForm" 
-              class="space-y-3 flex-grow overflow-y-auto p-6 pt-5">
+              class="space-y-6 flex-grow overflow-y-auto p-8 pt-6 scrollbar-thin scrollbar-thumb-gray-300">
             
-            {{-- TITLE INPUT --}}
+            {{-- Title --}}
             <div>
-                <label class="font-semibold">Title</label>
-                <input type="text" wire:model="title" class="input input-bordered w-full">
+                <label class="block mb-2 text-sm font-black text-gray-900 uppercase tracking-widest italic">Title</label>
+                <input type="text" wire:model="title" class="input input-bordered w-full border-2 border-gray-400 text-gray-900 font-bold focus:border-indigo-600 bg-white h-12">
             </div>
 
-            {{-- ISBN INPUT --}}
+            {{-- ISBN --}}
             <div>
-                <label class="font-semibold">ISBN</label>
-                <input type="text" wire:model="isbn" class="input input-bordered w-full">
+                <label class="block mb-2 text-sm font-black text-gray-900 uppercase tracking-widest italic">ISBN</label>
+                <input type="text" wire:model="isbn" class="input input-bordered w-full border-2 border-gray-400 text-gray-900 font-bold focus:border-indigo-600 bg-white h-12">
             </div>
 
-            {{-- YEAR INPUT --}}
-            <div>
-                <label class="font-semibold">Year</label>
-                <input type="number" wire:model="year" class="input input-bordered w-full">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block mb-2 text-sm font-black text-gray-900 uppercase tracking-widest italic">Year</label>
+                    <input type="number" wire:model="year" class="input input-bordered w-full border-2 border-gray-400 text-gray-900 font-bold focus:border-indigo-600 bg-white h-12">
+                </div>
+                <div>
+                    <label class="block mb-2 text-sm font-black text-gray-900 uppercase tracking-widest italic">Price (€)</label>
+                    <input type="number" step="0.01" wire:model="price" class="input input-bordered w-full border-2 border-gray-400 text-gray-900 font-bold focus:border-indigo-600 bg-white h-12">
+                </div>
             </div>
 
-            {{-- PRICE INPUT --}}
+            {{-- Publisher --}}
             <div>
-                <label class="font-semibold">Price</label>
-                <input type="number" step="0.01" wire:model="price" class="input input-bordered w-full">
-            </div>
-
-            {{-- PUBLISHER SELECT --}}
-            <div>
-                <label class="font-semibold">Publisher</label>
-                <select wire:model="publisher_id" class="select select-bordered w-full">
+                <label class="block mb-2 text-sm font-black text-gray-900 uppercase tracking-widest italic">Publisher</label>
+                <select wire:model="publisher_id" class="select select-bordered w-full border-2 border-gray-400 text-gray-900 font-black focus:border-indigo-600 bg-white h-12">
                     <option value="">-- Select Publisher --</option>
                     @foreach($publishers as $publisher)
                         <option value="{{ $publisher->id }}">{{ $publisher->name }}</option>
@@ -227,48 +230,29 @@
                 </select>
             </div>
 
-            {{-- BIBLIOGRAPHY TEXTAREA --}}
+            {{-- Bibliography --}}
             <div>
-                <label class="font-semibold">Bibliography</label>
-                <textarea wire:model="bibliography" class="textarea textarea-bordered w-full"></textarea>
+                <label class="block mb-2 text-sm font-black text-gray-900 uppercase tracking-widest italic">Bibliography</label>
+                <textarea wire:model="bibliography" class="textarea textarea-bordered w-full border-2 border-gray-400 text-gray-900 font-bold focus:border-indigo-600 bg-white min-h-[100px]"></textarea>
             </div>
 
-            {{-- COVER IMAGE UPLOAD --}}
-   {{-- COVER IMAGE UPLOAD (COM PREVIEW, MAS FORÇADO A SER PEQUENO) --}}
-<div>
-    <label class="font-semibold">Cover Image</label>
-
-    {{-- CURRENT COVER PREVIEW --}}
-    @if($bookId && $cover_image && !$newCover)
-        <div class="mb-4">
-            <span class="font-semibold">Current Cover:</span>
-            <div class="mt-2 flex justify-center h-28 overflow-hidden">
-                <img 
-                    src="{{ asset('storage/'.$cover_image) }}" 
-                    class="object-contain rounded shadow">
+            {{-- Cover Image Section --}}
+            <div class="bg-gray-50 p-4 rounded-2xl border-2 border-dashed border-gray-300">
+                <label class="block mb-4 text-sm font-black text-gray-900 uppercase tracking-widest italic text-center">Cover Image</label>
+                <input type="file" wire:model="newCover" class="file-input file-input-bordered w-full border-gray-400 text-gray-900 font-bold bg-white">
             </div>
-        </div>
-    @endif
-    
-    {{-- NEW COVER INPUT --}}
-    <input type="file" wire:model="newCover" 
-            class="file-input file-input-bordered w-full">
-</div>
-    
-    
-    <div class="h-6"></div> 
         </form>
 
-        <div class="flex justify-end pt-4 gap-3 flex-shrink-0 bg-white border-t border-gray-200 p-6 pt-4">
-            
-            <button type="button" 
-                    wire:click="$set('isModalOpen', false)"
-                    class="btn btn-outline">
+        {{-- FOOTER: Fixed at the bottom --}}
+    
+        <div class="flex justify-end gap-3 flex-shrink-0 bg-gray-50 border-t-2 border-gray-200 p-5 rounded-b-[2rem]">
+            <button type="button" wire:click="$set('isModalOpen', false)" 
+                    class="px-4 py-2 border-2 border-gray-400 text-gray-900 font-black rounded-xl hover:bg-gray-200 uppercase text-xs">
                 Cancel
             </button>
-
-            <button type="submit" form="bookForm" class="btn btn-primary">
-                Save
+            <button type="submit" form="bookForm" 
+                    class="px-8 py-2 bg-indigo-600 text-white font-black rounded-xl shadow-lg hover:bg-indigo-700 uppercase text-xs">
+                Save Book
             </button>
         </div>
     </div>

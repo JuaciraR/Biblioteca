@@ -1,18 +1,24 @@
 import './bootstrap';
 
-import Alpine from 'alpinejs';
+
 import Swal from 'sweetalert2';
-
-window.Swal = Swal;
-
-window.Alpine = Alpine;
-
-Alpine.start();
-
-// Importação do Axios (necessário para o Laravel/Jetstream)
 import axios from 'axios';
+import { library, dom } from '@fortawesome/fontawesome-svg-core';
+import { faShoppingCart } from '@fortawesome/free-solid-svg-icons';
+
 window.axios = axios;
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+window.Swal = Swal;
+
+
+
+// Adicionar o ícone à biblioteca
+library.add(faShoppingCart);
+
+// Comando crucial: substitui as tags <i> por SVGs automaticamente
+dom.watch();
+
+
 
 
 // --- LÓGICA FINAL PARA DISPARO DO SWEETALERT ---

@@ -2,7 +2,7 @@
     {{-- CASO 1: LIVRO DISPONÍVEL --}}
     @if($isAvailable)
         <button wire:click="requestBook" 
-                class="btn btn-sm btn-primary w-full text-black font-bold">
+                class="btn btn-sm btn-primary w-full text-white font-bold  hover:bg-blue-50">
             {{ __('Request') }}
         </button>
 

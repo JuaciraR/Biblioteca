@@ -3,6 +3,8 @@
 namespace App\Livewire;
 use Livewire\Component;
 use App\Models\Book;
+use App\Models\Cart;
+use App\Models\CartItem;
 use Illuminate\Support\Facades\Auth;
 
 class BookDetail extends Component
@@ -31,7 +33,40 @@ class BookDetail extends Component
             $this->flashMessage = session('error');
         }
     }
+     
+    /**
+     * Handles adding the book to the cart with stock validation.
+     */
+     public function addToCart()
+{
+    if (!Auth::check()) {
+        return session()->flash('error', 'Please log in to purchase books.');
+    }
 
+    // 1. Get or Create Cart
+    $cart = Cart::firstOrCreate(['user_id' => Auth::id()]);
+
+    // 2. Add or Update Item
+    $cartItem = CartItem::where('cart_id', $cart->id)
+        ->where('book_id', $this->book->id)
+        ->first();
+
+    if ($cartItem) {
+        
+        $cartItem->increment('quantity');
+    } else {
+        CartItem::create([
+            'cart_id' => $cart->id,
+            'book_id' => $this->book->id,
+            'quantity' => 1
+        ]);
+    }
+
+    // 3. Importante: Dispara o evento para atualizar o ícone no menu
+    $this->dispatch('cart-updated');
+
+    session()->flash('success', 'Book added to your cart!');
+}
     public function render()
     {
         $requestsQuery = $this->book->requests()->with('user')

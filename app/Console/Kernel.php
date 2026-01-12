@@ -17,6 +17,7 @@ class Kernel extends ConsoleKernel
         // REQUISITO: Enviar Reminder no dia anterior à entrega
         // Agenda o comando 'emails:send-reminders' para rodar todos os dias às 08:00
         $schedule->command('emails:send-reminders')->dailyAt('08:00'); 
+         $schedule::command('app:send-cart-reminders')->everyMinute();
     }
 
     /**
