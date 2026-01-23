@@ -2,7 +2,7 @@
     {{-- CASO 1: LIVRO DISPONÍVEL --}}
     @if($isAvailable)
         <button wire:click="requestBook" 
-                class="btn btn-sm btn-primary w-full text-white font-bold  hover:bg-blue-50">
+                class="btn btn-sm btn-primary w-full text-gray-800 font-bold  hover:bg-blue-600">
             {{ __('Request') }}
         </button>
 
@@ -15,7 +15,7 @@
             </button>
 
             {{-- LÓGICA DO ALERTA --}}
-            @if(Auth::check() && Auth::user()->role === 'Cidadao')
+            @if(auth()->user()?->getAttribute('role') === 'Cidadao')
                 @if($hasAlert)
                     <span class="text-[9px] text-green-600 font-bold text-center">✓ Alert active</span>
                 @else

@@ -11,7 +11,7 @@
             <div>
                 <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">Street and Number</label>
                 <input type="text" wire:model="street" placeholder="e.g. 123 Main Street, Apt 4"
-                       class="w-full rounded-xl border-gray-200 bg-white p-3 text-sm focus:ring-2 focus:ring-indigo-500">
+                       class="w-full rounded-xl border-black-200 bg-black p-3 text-sm focus:ring-2 focus:ring-indigo-500">
                 @error('street') <span class="text-red-600 text-[10px] font-bold mt-1 block uppercase">{{ $message }}</span> @enderror
             </div>
 
@@ -20,13 +20,13 @@
                 <div>
                     <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">Zip Code</label>
                     <input type="text" wire:model="zip_code" placeholder="0000-000"
-                           class="w-full rounded-xl border-gray-200 bg-white p-3 text-sm focus:ring-2 focus:ring-indigo-500">
+                           class="w-full rounded-xl border-black-200 bg-black p-3 text-sm focus:ring-2 focus:ring-indigo-500">
                     @error('zip_code') <span class="text-red-600 text-[10px] font-bold mt-1 block uppercase">{{ $message }}</span> @enderror
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">City</label>
                     <input type="text" wire:model="city" placeholder="Lisbon"
-                           class="w-full rounded-xl border-gray-200 bg-white p-3 text-sm focus:ring-2 focus:ring-indigo-500">
+                           class="w-full rounded-xl border-black-200 bg-black p-3 text-sm focus:ring-2 focus:ring-indigo-500">
                     @error('city') <span class="text-red-600 text-[10px] font-bold mt-1 block uppercase">{{ $message }}</span> @enderror
                 </div>
             </div>

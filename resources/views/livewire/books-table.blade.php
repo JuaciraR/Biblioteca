@@ -56,123 +56,105 @@
     @endif
 
 
-   
-    {{-- BOOKS TABLE --}}
-    <div class="bg-black rounded-xl shadow overflow-x-auto p-4">
-        <table class="table w-full">
-            <thead class="text-black-700 bg-black-100">
-                <tr>
-                    {{-- HEADER 1: TITLE --}}
-                    <th class="cursor-pointer text-center" wire:click="sortBy('title')">
-                        Title @if($sortField === 'title') <span>{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span> @endif
-                    </th>
-                    {{-- HEADER 2: ISBN --}}
-                    <th class="cursor-pointer text-center" wire:click="sortBy('isbn')">
-                        ISBN @if($sortField === 'isbn') <span>{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span> @endif
-                    </th>
-                    {{-- HEADER 3: PUBLISHER --}}
-                    <th class="cursor-pointer text-center" wire:click="sortBy('publisher_id')">
-                        Publisher @if($sortField === 'publisher_id') <span>{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span> @endif
-                    </th>
-                    {{-- HEADER 4: YEAR --}}
-                    <th class="cursor-pointer text-center" wire:click="sortBy('year')">
-                        Year @if($sortField === 'year') <span>{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span> @endif
-                    </th>
-                    {{-- HEADER 5: PRICE --}}
-                    <th class="cursor-pointer text-center" wire:click="sortBy('price')">
-                        Price @if($sortField === 'price') <span>{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span> @endif
-                    </th>
-                    {{-- HEADER 6: BIBLIOGRAPHY --}}
-                    <th class="cursor-pointer text-center" wire:click="sortBy('bibliography')">
-                        Bibliography @if($sortField === 'bibliography') <span>{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span> @endif
-                    </th>
-                    {{-- HEADER 7: COVER --}}
-                    <th class="cursor-pointer text-center" wire:click="sortBy('cover_image')">
-                        Cover @if($sortField === 'cover_image') <span>{{ $sortDirection === 'asc' ? '↑' : '↓' }}</span> @endif
-                    </th>
+{{-- BOOKS TABLE - ENHANCED SIZE & CONTRAST --}}
+<div class="w-full overflow-x-auto rounded-[2.5rem] border-4 border-gray-900 shadow-2xl bg-white scrollbar-thin scrollbar-thumb-gray-900">
+    <table class="table w-full border-collapse">
+        <thead class="bg-gray-900 border-b-4 border-gray-900">
+            <tr class="text-white font-black uppercase text-[13px] tracking-widest text-center">
+                {{-- Todos os campos com wire:click e ícones maiores --}}
+                <th class="p-6 cursor-pointer hover:bg-gray-800 transition-colors" wire:click="sortBy('title')">
+                    Title <span class="text-lg ml-1 text-blue-400">@if($sortField === 'title') {{ $sortDirection === 'asc' ? '↑' : '↓' }} @else ↕ @endif</span>
+                </th>
+                <th class="p-6 cursor-pointer hover:bg-gray-800 transition-colors" wire:click="sortBy('isbn')">
+                    ISBN <span class="text-lg ml-1 text-blue-400">@if($sortField === 'isbn') {{ $sortDirection === 'asc' ? '↑' : '↓' }} @else ↕ @endif</span>
+                </th>
+                <th class="p-6 cursor-pointer hover:bg-gray-800 transition-colors" wire:click="sortBy('publisher_id')">
+                    Publisher <span class="text-lg ml-1 text-blue-400">@if($sortField === 'publisher_id') {{ $sortDirection === 'asc' ? '↑' : '↓' }} @else ↕ @endif</span>
+                </th>
+                <th class="p-6 cursor-pointer hover:bg-gray-800 transition-colors" wire:click="sortBy('year')">
+                    Year <span class="text-lg ml-1 text-blue-400">@if($sortField === 'year') {{ $sortDirection === 'asc' ? '↑' : '↓' }} @else ↕ @endif</span>
+                </th>
+                <th class="p-6 cursor-pointer hover:bg-gray-800 transition-colors" wire:click="sortBy('price')">
+                    Price <span class="text-lg ml-1 text-blue-400">@if($sortField === 'price') {{ $sortDirection === 'asc' ? '↑' : '↓' }} @else ↕ @endif</span>
+                </th>
+                <th class="p-6 cursor-pointer hover:bg-gray-800 transition-colors" wire:click="sortBy('bibliography')">
+                    Bibliography <span class="text-lg ml-1 text-blue-400">@if($sortField === 'bibliography') {{ $sortDirection === 'asc' ? '↑' : '↓' }} @else ↕ @endif</span>
+                </th>
+                <th class="p-6 cursor-pointer hover:bg-gray-800 transition-colors" wire:click="sortBy('cover_image')">
+                    Cover <span class="text-lg ml-1 text-blue-400">@if($sortField === 'cover_image') {{ $sortDirection === 'asc' ? '↑' : '↓' }} @else ↕ @endif</span>
+                </th>
+                <th class="p-6">Availability</th>
+                <th class="p-6">Actions</th>
+            </tr>
+        </thead>
+
+        <tbody class="text-center divide-y-4 divide-gray-200">
+            @forelse ($books as $book)
+                <tr class="hover:bg-gray-50 transition-all">
+                    {{-- Fonte aumentada para text-base (16px) e negrito pesado --}}
+                    <td class="p-6 font-black text-gray-900 text-base italic leading-tight">{{ $book->title }}</td>
+                    <td class="p-6 text-gray-950 font-bold text-sm">{{ $book->isbn }}</td>
+                    <td class="p-6 text-gray-900 font-black uppercase text-xs">{{ $book->publisher->name ?? '-' }}</td>
+                    <td class="p-6 text-gray-950 font-black text-lg">{{ $book->year ?? '-' }}</td>
+                    <td class="p-6 text-blue-900 font-black text-lg tracking-tighter">€{{ number_format($book->price, 2) }}</td>
+                    <td class="p-6 text-gray-800 font-bold text-xs max-w-xs truncate">{{ $book->bibliography ?? '-' }}</td>
                     
-                    {{-- HEADER 8: AVAILABILITY --}}
-                    <th class="text-center">
-                        Availability
-                    </th>
-                    
-                    {{-- HEADER 9: ACTIONS --}}
-                    <th class="text-center">Actions</th>
-                </tr>
-            </thead>
+                    <td class="p-6">
+                        @if($book->cover_image)
+                            <img src="{{ $book->cover_image }}" class="h-24 w-20 object-cover rounded-xl border-4 border-gray-900 mx-auto shadow-lg bg-white">
+                        @else
+                            <div class="h-24 w-20 bg-gray-100 rounded-xl border-4 border-dashed border-gray-400 mx-auto flex items-center justify-center">
+                                <span class="text-gray-400 font-black italic">X</span>
+                            </div>
+                        @endif
+                    </td>
 
-            <tbody class="text-center">
-                @forelse ($books as $book)
-                    <tr class="hover:bg-blue-50">
-                        {{-- 1. TITLE --}}
-                        <td class="font-medium">{{ $book->title }}</td>
-                        {{-- 2-6. DADOS --}}
-                        <td>{{ $book->isbn }}</td>
-                        <td>{{ $book->publisher->name ?? '-' }}</td>
-                        <td>{{ $book->year ?? '-' }}</td>
-                        <td>{{ $book->price ? '€'.number_format($book->price, 2) : '-' }}</td>
-                        <td>{{ $book->bibliography ?? '-' }}</td>
+                    <td class="p-6">
+                        @php
+                            $isAvailable = $book->isAvailableForRequest();
+                            $status = $isAvailable ? 'Available' : 'In Request';
+                            $status_style = $isAvailable ? 'bg-green-700 text-white border-green-950 shadow-[0_4px_0_0_rgba(5,46,22,1)]' : 'bg-red-700 text-white border-red-950 shadow-[0_4px_0_0_rgba(69,10,10,1)]';
+                        @endphp
+                        <span class="border-2 font-black uppercase text-xs px-5 py-2.5 rounded-xl inline-block {{ $status_style }}">
+                            {{ __($status) }}
+                        </span>
+                    </td>
 
-                        {{-- 7. COVER --}}
-                        <td>
-                            @if($book->cover_image)
-                                <img src="{{ $book->cover_image }}" 
-                                        class="h-20 w-20 object-cover rounded mx-auto">
-                            @else
-                                -
-                            @endif
-                        </td>
-                        
-                        {{-- 8. DISPONIBILIDADE --}}
-                        <td>
-                            @php
-                                $isAvailable = $book->isAvailableForRequest();
-                                $status = $isAvailable ? 'Available' : 'In Request';
-                                $status_class = $isAvailable ? 'badge-success' : 'badge-error';
-                            @endphp
-                            <span class="badge {{ $status_class }} text-white font-bold">{{ __($status) }}</span>
-                        </td>
-
-                        {{-- 9. ACTION COLUMN (Corrigido para 100% de funcionalidade e interface) --}}
-                        <td class="space-x-1 space-y-1 flex flex-col sm:flex-row items-center justify-center">
-                            
-                            {{-- BOTÃO DETALHES (HISTÓRICO) --}}
-                            <a href="{{ route('books.show', $book->id) }}" class="btn btn-xs btn-outline">
-                                {{ __('Details') }}
+                    <td class="p-6">
+                        <div class="flex flex-col gap-2 items-center justify-center min-w-[150px]">
+                            <a href="{{ route('books.show', $book->id) }}" class="w-full py-2.5 bg-white border-4 border-gray-900 text-gray-900 font-black rounded-xl uppercase text-xs hover:bg-gray-900 hover:text-white transition-all text-center">
+                                Details
                             </a>
                             
                             @if($isAdmin)
-                                {{-- ADMIN ACTIONS: CRUD --}}
-                                <button wire:click="editBook({{ $book->id }})" 
-                                    class="btn btn-xs btn-warning text-white">
-                                    Edit
-                                </button>
-                                <button wire:click="deleteBook({{ $book->id }})"
-                                    class="btn btn-xs btn-error text-white">
-                                    Delete
-                                </button>
+                                <div class="flex gap-2 w-full">
+                                    <button wire:click="editBook({{ $book->id }})" class="flex-1 py-2.5 bg-amber-500 border-4 border-amber-800 text-black font-black rounded-xl uppercase text-xs hover:bg-amber-600 shadow-md">
+                                        Edit
+                                    </button>
+                                    <button wire:click="deleteBook({{ $book->id }})" class="flex-1 py-2.5 bg-red-700 border-4 border-red-950 text-white font-black rounded-xl uppercase text-xs hover:bg-red-800 shadow-md">
+                                        Delete
+                                    </button>
+                                </div>
                             @endif
                             
-                            {{-- BOTÃO DE REQUISIÇÃO (Visível para Admin e Cidadão logado) --}}
-                            @if(Auth::check() && (Auth::user()->role === 'Cidadao' || $isAdmin))
-                                <livewire:book-request-button :book="$book" :key="'request-'.$book->id" />
+                            @if(auth()->user()?->getAttribute('role') === 'Cidadao')
+                                <div class="w-full transform scale-110 mt-1">
+                                    <livewire:book-request-button :book="$book" :key="'request-'.$book->id" />
+                                </div>
                             @endif
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        {{-- Colspan ajustado para 9 colunas no total --}}
-                        <td colspan="9" class="py-4 text-black-500">
-                            No books found.
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-
-       
-                 
+                        </div>
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="9" class="p-20 text-gray-900 font-black uppercase text-xl italic tracking-widest bg-gray-50 text-center">
+                        NO BOOKS FOUND IN DATABASE
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>    
 
     {{-- PAGINATION --}}
     <div class="pt-4">

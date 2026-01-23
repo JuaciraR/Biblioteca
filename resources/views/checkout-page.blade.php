@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-black text-2xl text-gray-900 leading-tight uppercase tracking-tighter italic">
+        <h2 class="font-black text-2xl text-black-900 leading-tight uppercase tracking-tighter italic">
             {{ __('Secure Checkout') }}
         </h2>
     </x-slot>

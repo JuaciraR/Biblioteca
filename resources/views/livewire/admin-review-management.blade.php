@@ -93,7 +93,7 @@
                                                 <label class="block text-xs font-bold text-red-700 mb-1 uppercase">Reason for Rejection:</label>
                                                 <textarea 
                                                     wire:model="rejectionReason" 
-                                                    class="w-full text-xs border-red-200 rounded focus:ring-red-500 focus:border-red-500 mb-2" 
+                                                   class="w-full text-sm font-bold text-gray-900 border-2 border-red-400 rounded-xl focus:ring-red-600 focus:border-red-600 mb-3 placeholder-gray-500 bg-white"
                                                     placeholder="Type the reason for the citizen..."
                                                     rows="3"
                                                 ></textarea>

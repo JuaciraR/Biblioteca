@@ -6,9 +6,11 @@ use Livewire\Component;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use App\Traits\Trackable;
 
 class CreateAdminForm extends Component
 {
+    use Trackable;
     public $name = '';
     public $email = '';
     public $password = '';
@@ -24,13 +26,17 @@ class CreateAdminForm extends Component
         ]);
         
         // 2. Criação do Admin
-        User::create([
+       $newAdmin = User::create([
             'name' => $this->name,
             'email' => $this->email,
             'password' => Hash::make($this->password),
             'role' => 'Admin', // Define o papel como Admin
         ]);
-
+        $this->logAudit(
+            'Users', 
+            $newAdmin->id, 
+            "Created a new Administrator account: {$newAdmin->email}"
+        );
         // 3. Feedback e Limpeza
         session()->flash('admin_creation_success', 'New Admin account created successfully!');
         $this->reset(['name', 'email', 'password', 'password_confirmation']);

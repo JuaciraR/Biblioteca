@@ -10,153 +10,161 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use App\Traits\Trackable;
 
 class RequestsTable extends Component
 {
-    // Propriedades para os indicadores/métricas de Admin
+    use Trackable;
+
+    // Propriedades de métricas do Admin
+    public $pendingRequestsCount = 0;
     public $activeRequestsCount = 0;
     public $last30DaysRequestsCount = 0;
     public $deliveredTodayCount = 0;
 
-    // Escuta o evento 'requestCreated' para atualizar as métricas
+    // Propriedades para a view
+    public $isAdmin = false;
+    public $message;
+    public $messageType;
+
+    // Escuta o evento 'requestCreated' para atualizar métricas
     protected $listeners = ['requestCreated' => 'updateMetrics'];
 
     public function mount()
     {
+        $this->isAdmin = Auth::user()?->role === 'Admin';
         $this->updateMetrics();
+
+        // Inicializa mensagens para evitar Undefined variable
+        $this->message = null;
+        $this->messageType = null;
     }
 
     // --- ADMIN ACTIONS ---
-    
-    /**
-     * Aprova uma requisição pendente.
-     */
     public function approve($id)
     {
-        if (Auth::user()?->role !== 'Admin') abort(403);
+        if (!$this->isAdmin) abort(403);
 
         $req = Request::findOrFail($id);
 
         if ($req->status !== 'Pending') {
-             session()->flash('error', 'Only Pending requests can be Approved.');
-             return;
+            $this->setMessage('Only Pending requests can be Approved.', 'error');
+            return;
         }
 
         $req->update(['status' => 'Approved']);
-        session()->flash('success', 'Request #' . $req->request_number . ' approved.');
+        $this->setMessage('Request #' . $req->request_number . ' approved.', 'success');
+
+        $this->logAudit('Requests', $id, "Admin Approved loan request #{$req->request_number}");
         $this->updateMetrics();
     }
 
-    /**
-     * Rejeita uma requisição pendente.
-     */
     public function reject($id)
     {
-        if (Auth::user()?->role !== 'Admin') abort(403);
+        if (!$this->isAdmin) abort(403);
 
         $req = Request::findOrFail($id);
 
         if ($req->status !== 'Pending') {
-             session()->flash('error', 'Only Pending requests can be Rejected.');
-             return;
+            $this->setMessage('Only Pending requests can be Rejected.', 'error');
+            return;
         }
 
         $req->update(['status' => 'Rejected']);
-        session()->flash('success', 'Request #' . $req->request_number . ' rejected.');
+        $this->setMessage('Request #' . $req->request_number . ' rejected.', 'success');
+
+        $this->logAudit('Requests', $id, "Admin Rejected loan request #{$req->request_number}");
         $this->updateMetrics();
     }
 
-    /**
-     * Confirma a boa receção (devolução) do livro pelo Cidadão.
-     */
-     public function confirmReception($id)
+    public function confirmReception($id)
     {
-        if (Auth::user()?->role !== 'Admin') abort(403);
+        if (!$this->isAdmin) abort(403);
 
-        // We load the 'book' relation to ensure data is available for the email template
         $req = Request::with('book')->findOrFail($id);
 
         if ($req->status !== 'Approved') {
-            session()->flash('error', 'Reception can only be confirmed for Approved requests.');
+            $this->setMessage('Reception can only be confirmed for Approved requests.', 'error');
             return;
         }
 
         try {
-            // 1. Update request status (This makes the book technically available in the logic)
             $req->update([
                 'status' => 'Received',
                 'received_at' => Carbon::now(),
             ]);
 
-            // --- CHALLENGE 3 LOGIC (ALERTS) ---
-            
-            // 2. Find all users who subscribed to an alert for this specific book
+            $this->logAudit('Requests', $id, "Admin confirmed reception of book for request #{$req->request_number}");
+
+            // Alertas para usuários inscritos
             $alerts = AvailabilityAlert::where('book_id', $req->book_id)->with('user')->get();
 
-            Log::info("Book {$req->book_id} returned. Alerts found: " . $alerts->count());
-
             foreach ($alerts as $alert) {
-                // 3. Send the notification email if user and email exist
-                if ($alert->user && $alert->user->email) {
+                if ($alert->user?->email) {
                     Mail::to($alert->user->email)->send(new BookAvailableMail($req->book));
-                    Log::info("Availability alert email sent to: " . $alert->user->email);
                 }
-                
-                // 4. Remove the alert from database (one-time notification completed)
                 $alert->delete();
             }
 
-            // --- END OF CHALLENGE 3 LOGIC ---
-            
-            $daysElapsed = $req->requested_at ? $req->received_at->diffInDays($req->requested_at) : 0;
-            
             $msg = 'Request #' . $req->request_number . ' marked as received.';
             if ($alerts->count() > 0) {
                 $msg .= ' ' . $alerts->count() . ' users were notified by email.';
             }
 
-            session()->flash('success', $msg);
+            $this->setMessage($msg, 'success');
 
         } catch (\Exception $e) {
             Log::error('Failed to process availability alerts: ' . $e->getMessage());
-            session()->flash('warning', 'Book received, but email notifications failed.');
+            $this->setMessage('Book received, but email notifications failed.', 'warning');
         }
 
         $this->updateMetrics();
     }
-   
 
-    /**
-     * Atualiza os indicadores do Admin.
-     */
+    // --- MÉTODOS AUXILIARES ---
+    private function setMessage($message, $type = 'success')
+    {
+        $this->message = $message;
+        $this->messageType = $type;
+        session()->flash($type, $message); // Mantém compatibilidade com a view
+    }
+
     public function updateMetrics()
     {
         $requestsQuery = Request::with('user', 'book');
-        
-        // Cidadão não vê estes indicadores, mas o filtro de role é aplicado no render.
         $allRequests = $requestsQuery->get();
 
-        // Cálculo dos Indicadores
+        $this->pendingRequestsCount = $allRequests->where('status', 'Pending')->count();
         $this->activeRequestsCount = $allRequests->whereIn('status', ['Pending', 'Approved'])->count();
         $this->last30DaysRequestsCount = $allRequests->where('requested_at', '>=', Carbon::now()->subDays(30))->count();
         $this->deliveredTodayCount = $allRequests->where('received_at', '>=', Carbon::today())->count();
     }
 
     public function render()
-    { 
-         $this->updateMetrics();
+    {
+        $this->updateMetrics();
 
-        $requestsQuery = Request::with('user', 'book')->latest('id');
+        $requestsQuery = Request::with(['user', 'book'])
+            ->orderByRaw("CASE 
+                WHEN status = 'Pending' THEN 1 
+                WHEN status = 'Approved' THEN 2 
+                WHEN status = 'Received' THEN 3 
+                ELSE 4 END")
+            ->orderByDesc('requested_at');
 
-        // Regra de Negócio: Cidadão vê apenas as suas requisições.
-        if (Auth::user()?->role === 'Cidadao') {
+        if (! $this->isAdmin) {
             $requestsQuery->where('user_id', Auth::id());
         }
-        
-        $requests = $requestsQuery->get();
-        
+
         return view('livewire.requests-table', [
-            'requests' => $requests,
+            'requests' => $requestsQuery->get(),
+            'isAdmin' => $this->isAdmin,
+            'message' => $this->message,
+            'messageType' => $this->messageType,
+            'pendingRequestsCount' => $this->pendingRequestsCount,
+            'activeRequestsCount' => $this->activeRequestsCount,
+            'last30DaysRequestsCount' => $this->last30DaysRequestsCount,
+            'deliveredTodayCount' => $this->deliveredTodayCount,
         ]);
     }
 }

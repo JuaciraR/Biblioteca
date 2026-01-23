@@ -1,85 +1,90 @@
 <div class="p-6 space-y-8 bg-gray-50 min-h-screen">
-    <h1 class="text-3xl font-bold text-gray-900">Import Books from Google Books API</h1>
-    <p class="text-gray-600">Search by title, author, or ISBN to fetch external data and add it to your collection.</p>
+    <h1 class="text-3xl font-bold text-gray-900 uppercase tracking-tighter italic">Import Books from Google Books API</h1>
+    <p class="text-gray-600 font-medium">Search by title, author, or ISBN to fetch external data and add it to your collection.</p>
 
     {{-- Search Form --}}
-    <div class="bg-white p-6 rounded-xl shadow">
+    <div class="bg-white p-6 rounded-xl border-4 border-gray-900 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
         <form wire:submit.prevent="search" class="flex flex-col sm:flex-row gap-4">
+            {{-- Input com texto cinza escuro (text-gray-800) --}}
             <input type="text"
                    wire:model.defer="searchTerm"
                    placeholder="Title, Author, or ISBN..."
-                   class="input input-bordered w-full sm:flex-grow focus:border-blue-500 transition duration-150 ease-in-out"
+                   class="input input-bordered w-full sm:flex-grow border-2 border-gray-300 focus:border-blue-600 focus:ring-0 text-gray-800 font-bold placeholder-gray-400 transition duration-150 ease-in-out"
                    required>
 
-            <button type="submit" class="btn btn-primary text-white sm:w-auto" wire:loading.attr="disabled">
-                <svg wire:loading wire:target="search" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <button type="submit" 
+                    wire:loading.attr="disabled"
+                    class="inline-flex items-center justify-center px-6 py-2.5 bg-blue-600 text-white font-black uppercase text-xs tracking-widest border-4 border-gray-900 rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-blue-700 hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                
+                {{-- Spinner de Carregamento --}}
+                <svg wire:loading wire:target="search" 
+                     class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" 
+                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <span wire:loading.remove>Search</span>
+
+                <span wire:loading.remove wire:target="search">Search Books</span>
+                <span wire:loading wire:target="search">Searching...</span>
             </button>
         </form>
-        @error('searchTerm') <p class="text-red-500 text-sm mt-2">{{ $message }}</p> @enderror
+        
+        @error('searchTerm') <p class="text-red-600 font-bold text-sm mt-2">{{ $message }}</p> @enderror
         
         @if (session()->has('error'))
-            <div class="alert alert-error mt-4 shadow-lg"><span>{{ session('error') }}</span></div>
+            <div class="alert bg-red-100 border-2 border-red-600 text-red-600 mt-4 font-bold rounded-lg"><span>{{ session('error') }}</span></div>
         @endif
         @if (session()->has('success'))
-            <div class="alert alert-success mt-4 shadow-lg"><span>{{ session('success') }}</span></div>
+            <div class="alert bg-green-100 border-2 border-green-600 text-green-600 mt-4 font-bold rounded-lg"><span>{{ session('success') }}</span></div>
         @endif
     </div>
 
     {{-- Search Results --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         @if ($isLoading)
-            <div class="col-span-full flex justify-center py-10">
-                <span class="loading loading-spinner text-primary"></span>
-                <p class="text-gray-500 ml-3">Searching for books...</p>
+            <div class="col-span-full flex flex-col items-center justify-center py-20">
+                <span class="loading loading-spinner loading-lg text-blue-600"></span>
+                <p class="text-gray-900 font-black uppercase italic mt-4">Connecting to Google API...</p>
             </div>
         @elseif ($searchPerformed && empty($results))
             <div class="col-span-full flex justify-center py-10">
-                <p class="text-gray-500">No books found for "{{ $searchTerm }}".</p>
+                <p class="text-gray-500 font-bold">No books found for "{{ $searchTerm }}".</p>
             </div>
         @else
             @foreach($results as $book)
-                <div class="card bg-white shadow-xl hover:shadow-2xl transition duration-300 ease-in-out">
-                    <div class="card-body p-6">
-                        <div class="flex space-x-4">
+                <div class="bg-white border-4 border-gray-900 rounded-[2rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] overflow-hidden hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all duration-200">
+                    <div class="p-6">
+                        <div class="flex gap-4">
                             {{-- Cover Image --}}
                             <div class="flex-shrink-0">
-                                @if($book['cover_image'])
-                                    <img src="{{ $book['cover_image'] }}" 
-                                         alt="Book Cover" 
-                                         onerror="this.onerror=null;this.src='https://placehold.co/128x192/E0E0E0/333?text=No+Cover';"
-                                         class="w-24 h-36 object-cover rounded shadow-md">
-                                @else
-                                    <img src="https://placehold.co/128x192/E0E0E0/333?text=No+Cover"
-                                         alt="No Cover"
-                                         class="w-24 h-36 object-cover rounded shadow-md">
-                                @endif
+                                <img src="{{ $book['cover_image'] ?? 'https://placehold.co/128x192/E0E0E0/333?text=No+Cover' }}" 
+                                     alt="Book Cover" 
+                                     onerror="this.src='https://placehold.co/128x192/E0E0E0/333?text=No+Cover';"
+                                     class="w-24 h-36 object-cover rounded-xl border-2 border-gray-900 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                             </div>
 
-                            {{-- Mapped Details --}}
+                            {{-- Details --}}
                             <div class="flex-grow">
-                                <h2 class="card-title text-xl font-bold text-blue-600 line-clamp-2" title="{{ $book['title'] }}">{{ $book['title'] }}</h2>
-                                <p class="text-sm text-gray-500 mt-1">
-                                    **Publisher:** {{ $book['publisher_name'] }} (Year: {{ $book['year'] }})
+                                <h2 class="text-lg font-black text-gray-900 leading-tight line-clamp-2 uppercase italic" title="{{ $book['title'] }}">
+                                    {{ $book['title'] }}
+                                </h2>
+                                <p class="text-[10px] font-bold text-blue-600 uppercase mt-2">
+                                    {{ $book['publisher_name'] }} ({{ $book['year'] }})
                                 </p>
-                                <p class="text-sm text-gray-600 mt-2">
-                                    **ISBN:** {{ $book['isbn'] }}
+                                <p class="text-[10px] font-bold text-gray-500 mt-1">
+                                    ISBN: {{ $book['isbn'] }}
                                 </p>
-                                <div class="mt-2 text-xs text-gray-700 line-clamp-3" title="{{ $book['bibliography'] }}">
+                                <div class="mt-2 text-[10px] text-gray-700 font-medium line-clamp-3 leading-relaxed">
                                     {{ $book['bibliography'] }}
                                 </div>
                             </div>
                         </div>
 
-                        {{-- Action Button (Import) --}}
-                        <div class="card-actions justify-end mt-4">
-                            {{-- CHAMA O MÉTODO DE IMPORTAÇÃO, PASSANDO O ARRAY DO LIVRO --}}
+                        {{-- Action Button --}}
+                        <div class="mt-6 flex justify-end">
                             <button wire:click="importBook({{ json_encode($book) }})" 
-                                    class="btn btn-sm btn-success text-black"
-                                    wire:confirm="Are you sure you want to import the book '{{ $book['title'] }}'?"
+                                    class="px-4 py-2 bg-green-500 text-black font-black uppercase text-[10px] border-2 border-gray-900 rounded-lg shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+                                    wire:confirm="Import '{{ $book['title'] }}' to your collection?"
                                     wire:loading.attr="disabled">
                                 Import to DB
                             </button>

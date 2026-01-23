@@ -1,143 +1,111 @@
-<div class="p-4 sm:p-6 lg:p-8">
-    <h1 class="text-3xl font-bold text-gray-900 mb-2">
-        {{ $isAdmin ? 'Gestão de Requisições da Biblioteca' : 'Minhas Requisições' }}
+<div class="p-4 sm:p-6 lg:p-8 bg-white">
+    <h1 class="text-4xl font-black text-gray-900 mb-2 uppercase tracking-tighter italic">
+        {{ $isAdmin ? 'Library Request Management' : 'My Requests' }}
     </h1>
-    <p class="text-black-600 mb-6">
+    <p class="text-gray-900 font-black mb-6 italic uppercase text-xs tracking-wider">
         @if($isAdmin)
-            Painel de Admin para aprovar, rejeitar ou confirmar a devolução de livros.
+            Admin panel to approve, reject, or confirm book returns.
         @else
-            Aqui está o histórico e o status de todos os seus pedidos de livros.
+            Here is the history and status of all your book requests.
         @endif
     </p>
 
-    {{-- BLOCO DE ALERTA (Usa variáveis do componente PHP) --}}
+    {{-- HIGH-CONTRAST ALERTS --}}
     @if ($message)
-        <div class="alert shadow-lg mb-4 
-            @if ($messageType === 'success') alert-success
-            @elseif ($messageType === 'error') alert-error
-            @elseif ($messageType === 'warning') alert-warning
+        <div class="p-5 mb-6 border-4 font-black uppercase text-sm tracking-widest shadow-lg rounded-2xl
+            @if ($messageType === 'success') bg-green-200 text-green-950 border-green-700
+            @elseif ($messageType === 'error') bg-red-200 text-red-950 border-red-700
+            @elseif ($messageType === 'warning') bg-amber-200 text-amber-950 border-amber-700
             @endif"
         >
-            @if ($messageType === 'success')
-                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            @elseif ($messageType === 'error')
-                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            @elseif ($messageType === 'warning')
-                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.772-1.333-2.688-1.333-3.46 0L3.3 16c-.772 1.333.192 3 1.732 3z" /></svg>
-            @endif
-            <span>{{ $message }}</span>
+            <div class="flex items-center">
+                <i class="fas {{ $messageType === 'success' ? 'fa-check-circle' : ($messageType === 'error' ? 'fa-times-circle' : 'fa-exclamation-triangle') }} mr-3 text-2xl"></i>
+                <span>{{ $message }}</span>
+            </div>
         </div>
     @endif
 
-    {{-- CARTÕES DE MÉTRICAS (Visível SOMENTE para Admin) --}}
+    {{-- METRIC CARDS (ADMIN ONLY) --}}
     @if($isAdmin)
-        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
-            {{-- Métrica 1: Requisições Pendentes --}}
-            <div class="stat shadow bg-black border border-yellow-300">
-                <div class="stat-figure text-secondary"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current text-yellow-500"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
-                <div class="stat-title">Requisições Pendentes</div>
-                <div class="stat-value text-black-600">{{ $pendingRequestsCount }}</div>
-                <div class="stat-desc">Aguardando aprovação</div>
-            </div>
-            
-            {{-- Métrica 2: Ativas --}}
-             <div class="stat shadow bg-black">
-                <div class="stat-figure text-secondary"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current text-blue-500"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V7M4 7h16M4 7l-2 2m2-2l2-2m12 2l2-2m-2 2l-2-2"></path></svg></div>
-                <div class="stat-title">Requisições Ativas</div>
-                <div class="stat-value text-black-600">{{ $activeRequestsCount }}</div>
-                <div class="stat-desc">Pendentes e Aprovadas</div>
-            </div>
-            
-             {{-- Métrica 3: 30 Dias --}}
-             <div class="stat shadow bg-black">
-                <div class="stat-figure text-secondary"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current text-purple-500"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
-                <div class="stat-title">Últimos 30 Dias</div>
-                <div class="stat-value">{{ $last30DaysRequestsCount }}</div>
-                <div class="stat-desc">Novos Pedidos</div>
-            </div>
-            
-             {{-- Métrica 4: Devolvidos Hoje --}}
-             <div class="stat shadow bg-black border border-black-300">
-                <div class="stat-figure text-secondary"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current text-green-500"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div>
-                <div class="stat-title">Livros Devolvidos Hoje</div>
-                <div class="stat-value text-black-600">{{ $deliveredTodayCount }}</div>
-                <div class="stat-desc">Confirmação de Receção</div>
-            </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-10">
+            @php
+                $metrics = [
+                    ['title' => 'Pending Requests', 'value' => $pendingRequestsCount, 'color' => 'amber-600', 'icon' => 'fa-clock'],
+                    ['title' => 'Active Requests', 'value' => $activeRequestsCount, 'color' => 'blue-700', 'icon' => 'fa-book-reader'],
+                    ['title' => 'Last 30 Days', 'value' => $last30DaysRequestsCount, 'color' => 'gray-900', 'icon' => 'fa-calendar-alt'],
+                    ['title' => 'Returned Today', 'value' => $deliveredTodayCount, 'color' => 'green-700', 'icon' => 'fa-check-double'],
+                ];
+            @endphp
+
+            @foreach($metrics as $metric)
+                <div class="p-6 bg-white border-4 border-gray-900 rounded-[2rem] shadow-xl">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-gray-900 font-black uppercase text-[10px] tracking-widest">{{ $metric['title'] }}</span>
+                        <i class="fas {{ $metric['icon'] }} text-xl text-{{ $metric['color'] }}"></i>
+                    </div>
+                    <div class="text-4xl font-black text-gray-900 mb-1">{{ $metric['value'] }}</div>
+                    <div class="text-[10px] font-bold text-gray-700 uppercase italic">Updated in real-time</div>
+                </div>
+            @endforeach
         </div>
     @endif
 
-    {{-- TABELA DE REQUISIÇÕES --}}
-    <div class="overflow-x-auto shadow-lg rounded-xl bg-black">
-        <table class="table w-full">
-            <thead class="text-black-700 bg-black-100">
-                <tr>
-                    <th class="p-3">Nº</th>
-                    @if($isAdmin)
-                        <th class="p-3">Utilizador</th>
-                    @endif
-                    <th class="p-3">Livro</th>
-                    <th class="p-3">Estado</th>
-                    <th class="p-3">Requisitado Em</th>
-                    <th class="p-3">Data Limite</th>
-                    <th class="p-3">Devolvido Em</th>
-                    @if($isAdmin)
-                        <th class="p-3 text-center">Ações</th>
-                    @endif
+    {{-- HIGH-CONTRAST REQUESTS TABLE --}}
+    <div class="overflow-hidden rounded-[2.5rem] border-4 border-gray-900 shadow-2xl bg-white">
+        <table class="table w-full border-collapse">
+            <thead class="bg-gray-900 border-b-4 border-gray-900">
+                <tr class="text-white font-black uppercase text-xs tracking-widest">
+                    <th class="p-5 text-center">No.</th>
+                    @if($isAdmin) <th class="p-5">User</th> @endif
+                    <th class="p-5">Book Title</th>
+                    <th class="p-5 text-center">Status</th>
+                    <th class="p-5 text-center">Requested</th>
+                    <th class="p-5 text-center">Due Date</th>
+                    <th class="p-5 text-center">Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y-4 divide-gray-100">
                 @foreach ($requests as $request)
-                    <tr class="hover:bg-gray-50">
-                        <td class="p-3">#{{ $request->request_number }}</td>
+                    <tr class="hover:bg-gray-50 transition-all">
+                        <td class="p-5 text-center font-black text-gray-900">#{{ $request->request_number }}</td>
                         @if($isAdmin)
-                            <td class="p-3">{{ $request->user->name ?? 'N/A' }}</td>
+                            <td class="p-5 text-gray-900 font-black italic">{{ $request->user->name ?? 'N/A' }}</td>
                         @endif
-                        <td class="p-3">{{ $request->book->title ?? 'N/A' }}</td>
-                        <td class="p-3">
+                        <td class="p-5 text-gray-900 font-bold text-sm">{{ $request->book->title ?? 'N/A' }}</td>
+                        <td class="p-5 text-center">
                             @php
-                                $status_class = match($request->status) {
-                                    'Approved' => 'badge-success',
-                                    'Rejected' => 'badge-error',
-                                    'Received' => 'badge-info',
-                                    'Pending' => 'badge-warning',
-                                    default => 'badge-neutral',
+                                $status_style = match($request->status) {
+                                    'Approved' => 'bg-green-500 text-white border-green-600',
+                                    'Rejected' => 'bg-red-600 text-white border-red-600',
+                                    'Received' => 'bg-blue-500 text-white border-blue-600',
+                                    'Pending'  => 'bg-amber-500 text-white border-amber-600',
+                                    default    => 'bg-gray-600 text-white border-gray-600',
                                 };
                             @endphp
-                            <span class="badge {{ $status_class }} text-black font-bold">{{ $request->status }}</span>
+                            <span class="border-2 font-black uppercase text-[10px] px-4 py-2 rounded-lg shadow-sm {{ $status_style }}">
+                                {{ $request->status }}
+                            </span>
                         </td>
-                        <td class="p-3">{{ $request->requested_at->format('Y-m-d') }}</td>
-                        <td class="p-3 font-semibold text-red-600">
-                             {{ $request->due_date->format('Y-m-d') }}
+                        <td class="p-5 text-center text-gray-900 font-bold text-xs">{{ $request->requested_at->format('Y-m-d') }}</td>
+                        <td class="p-5 text-center font-black text-red-700 bg-red-50/30 italic text-sm">
+                            {{ optional($request->due_date)->format('Y-m-d') ?? '-' }}
+
                         </td>
-                        <td class="p-3">{{ $request->received_at?->format('Y-m-d') ?? 'Pendente' }}</td>
-                        @if($isAdmin)
-                            <td class="p-3 flex justify-center space-x-2">
-                                @if ($request->status === 'Pending')
-                                    {{-- APROVAR (Dispara o e-mail real) --}}
-                                    <button wire:click="approveRequest({{ $request->id }})" 
-                                            class="btn btn-xs btn-success text-black hover:btn-success/80">
-                                        Aprovar
-                                    </button>
-                                    {{-- REJEITAR --}}
-                                    <button wire:click="rejectRequest({{ $request->id }})" 
-                                            class="btn btn-xs btn-error text-black hover:btn-error/80">
-                                        Rejeitar
-                                    </button>
-                                @elseif ($request->status === 'Approved')
-                                    {{-- CONFIRMAR DEVOLUÇÃO/RECEÇÃO --}}
-                                    <button wire:click="confirmReceipt({{ $request->id }})" 
-                                            class="btn btn-xs btn-info text-black hover:btn-info/80">
-                                        Confirmar Receção
-                                    </button>
+                        <td class="p-5 text-center">
+                            <div class="flex justify-center gap-2">
+                                @if ($request->status === 'Pending' && $isAdmin)
+                                    <button wire:click="approveRequest({{ $request->id }})" class="px-4 py-2 bg-green-600 text-black font-black rounded-xl uppercase text-[10px] border-b-4 border-black active:translate-y-1 transition-all">Approve</button>
+                                    <button wire:click="rejectRequest({{ $request->id }})" class="px-4 py-2 bg-red-600 text-black font-black rounded-xl uppercase text-[10px] border-b-4 border-black active:translate-y-1 transition-all">Reject</button>
+                                @elseif ($request->status === 'Approved' && $isAdmin)
+                                    <button wire:click="confirmReceipt({{ $request->id }})" class="px-6 py-2 bg-blue-600 text-black font-black rounded-xl uppercase text-[10px] border-b-4 border-black active:translate-y-1 transition-all">Confirm Return</button>
                                 @else
-                                    <span class="text-gray-400">Finalizado</span>
+                                    <span class="text-gray-900 font-black uppercase text-[10px] tracking-widest">Completed</span>
                                 @endif
-                            </td>
-                        @endif
+                            </div>
+                        </td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
     </div>
-
 </div>

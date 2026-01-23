@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Cart;
 use Illuminate\Http\Request;
+use App\Models\AuditLog;
 use Illuminate\Support\Facades\Auth;
 
 class CheckoutController extends Controller
@@ -28,6 +29,11 @@ class CheckoutController extends Controller
             $cart->items()->delete();
         }
 
+        AuditLog::logAction(
+            'Checkout', 
+            $order->id, 
+            "Payment successful for Order #{$order->id}. Status updated to PAID and cart cleared."
+        );
         
         return view('checkout-success', [
             'order' => $order
@@ -39,7 +45,11 @@ class CheckoutController extends Controller
      */
     public function cancel()
     {
-        
+        AuditLog::logAction(
+            'Checkout', 
+            Auth::id(), 
+            "User cancelled the payment process at Stripe checkout."
+        );
         return view('checkout-cancel');
     }
 }

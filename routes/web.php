@@ -11,6 +11,7 @@ use App\Livewire\Cart\Checkout;
 use App\Livewire\AdminReviewManagement;
 use App\Http\Controllers\CheckoutController;
 use App\Livewire\Admin\OrderList;
+use App\Http\Controllers\AuditLogController;
 
 
 Route::get('/', function () {
@@ -97,6 +98,6 @@ Route::get('/checkout/cancel', [CheckoutController::class, 'cancel'])->name('che
 
     });
 
-
+Route::get('/logs', [AuditLogController::class, 'index'])->name('logs.index');
 
 });

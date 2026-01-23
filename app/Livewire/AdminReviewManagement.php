@@ -11,10 +11,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Log;
+use App\Traits\Trackable;
 
 class AdminReviewManagement extends Component
 {
-    use WithPagination;
+    use WithPagination, Trackable;
 
     // State properties for rejection process
     public $rejectingId = null;
@@ -50,6 +51,8 @@ class AdminReviewManagement extends Component
                 'status' => 'active',
                 'rejection_reason' => null
             ]);
+
+            $this->logAudit('Reviews', $review->id, "Admin APPROVED review for book: {$review->book->title}");
 
             // Notify the citizen
             Mail::to($review->user->email)->send(new ReviewApprovedMail($review));
@@ -98,6 +101,8 @@ class AdminReviewManagement extends Component
                 'status' => 'rejected',
                 'rejection_reason' => $this->rejectionReason
             ]);
+
+            $this->logAudit('Reviews', $review->id, "Admin REJECTED review. Reason: {$this->rejectionReason}");
 
             // 2. IMPORTANTE: Damos refresh no objeto para garantir que o e-mail lê a razão gravada
             $review->refresh();

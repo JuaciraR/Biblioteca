@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Livewire\Cart;
-
+use App\Traits\Trackable;
 use Livewire\Component;
 use App\Models\Cart;
 use App\Models\Order;
@@ -12,12 +12,16 @@ use Stripe\Checkout\Session;
 
 class Checkout extends Component
 {
+    use Trackable;
+
     // Individual address properties
     public $street = '';
     public $city = '';
     public $zip_code = '';
     public $country = 'Portugal';
     public $total = 0;
+
+    
 
     public function mount()
     {
@@ -68,6 +72,12 @@ class Checkout extends Component
                 'price'    => (float) $item->book->price,
             ]);
         }
+
+        $this->logAudit(
+            'Checkout', 
+            $order->id, 
+            "Created order {$order->order_number} with total of €{$this->total}"
+        );
 
         // 4. Configure Stripe and Currency
         Stripe::setApiKey(config('services.stripe.secret'));

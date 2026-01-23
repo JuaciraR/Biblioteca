@@ -18,7 +18,8 @@ class publisherFactory extends Factory
     {
          return [
         'name' => $this->faker->company,
-        'logo' => null, // pode gerar fake com $this->faker->imageUrl(100,100)
+        'logo' => null,
+        'key'  => $this->faker->uuid(),// pode gerar fake com $this->faker->imageUrl(100,100)
     ];
     }
 }

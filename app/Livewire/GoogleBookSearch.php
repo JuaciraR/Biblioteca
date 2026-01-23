@@ -7,10 +7,11 @@ use Illuminate\Support\Facades\Http;
 use App\Models\Publisher; 
 use App\Models\Book; 
 use Illuminate\Support\Str;
+use App\Traits\Trackable;
 
 class GoogleBookSearch extends Component
 {
-   
+   use Trackable;
    
     public $searchTerm = '';
     public $results = [];
@@ -120,7 +121,13 @@ class GoogleBookSearch extends Component
             ];
 
             // 4. Criar o Livro
-            Book::create($dataToSave);
+           $book= Book::create($dataToSave);
+
+            $this->logAudit(
+            'GoogleBooks', 
+            $book->id, 
+            "Imported book via API: '{$bookData['title']}' with ISBN {$bookData['isbn']}"
+        );
             
             // 5. Feedback
             session()->flash('success', "Book '{$bookData['title']}' imported and saved successfully! Publisher '{$publisherName}' checked/created.");

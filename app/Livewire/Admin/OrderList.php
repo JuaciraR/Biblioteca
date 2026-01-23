@@ -5,12 +5,13 @@ namespace App\Livewire\Admin;
 use Livewire\Component;
 use App\Models\Order;
 use Livewire\WithPagination;
+use App\Traits\Trackable;
 
-use Livewire\Attributes\Layout; // Adicionado: Importação necessária
+use Livewire\Attributes\Layout; 
 
 class OrderList extends Component
 {
-    use WithPagination;
+    use WithPagination,Trackable;
 
     public $statusFilter = '';
 
@@ -27,6 +28,7 @@ class OrderList extends Component
             $query->where('status', $this->statusFilter);
         }
 
+         
         return view('livewire.admin.order-list', [
             'orders' => $query->paginate(15)
         ]); // Removido o ->layout() daqui para evitar o erro PHP0418
@@ -40,7 +42,13 @@ class OrderList extends Component
     {
         $order = Order::find($orderId);
         if ($order) {
+            $oldStatus = $order->status;
             $order->update(['status' => $status]);
+            $this->logAudit(
+                'Orders', 
+                $orderId, 
+                "Updated Order #{$orderId} status from {$oldStatus} to {$status}"
+            );
             session()->flash('success', "Order #{$order->order_number} status updated.");
         }
     }

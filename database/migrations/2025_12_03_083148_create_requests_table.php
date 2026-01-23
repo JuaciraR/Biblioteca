@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id();
 
             // Campo para a numeração sequencial das requisições (Requisito)
-            $table->unsignedBigInteger('request_number')->nullable()->unique(); 
+            $table->string('request_number', 50)->nullable()->unique();
+
 
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('book_id')->constrained()->onDelete('cascade');

@@ -12,9 +12,11 @@ use Carbon\Carbon;
 use App\Mail\RequestApprovedMail; 
 use App\Mail\RequestRejectedMail; 
 use Illuminate\Support\Facades\Log;
+use App\Traits\Trackable;
 
 class AdminRequestManagement extends Component
 {
+    use Trackable;
     // Variáveis de estado para mensagens de alerta
     public $message = null;
     public $messageType = null;
@@ -45,6 +47,7 @@ class AdminRequestManagement extends Component
         try {
             $request->update(['status' => 'Approved']);
             
+            $this->logAudit('Requests', $request->id, "Admin APPROVED request #{$request->request_number}");
             // DISPARO DO E-MAIL ESPECÍFICO DE APROVAÇÃO
             Mail::to($request->user->email)->send(new RequestApprovedMail($request));
 
@@ -70,6 +73,8 @@ class AdminRequestManagement extends Component
 
         try {
             $request->update(['status' => 'Rejected']);
+
+            $this->logAudit('Requests', $request->id, "Admin REJECTED request #{$request->request_number}");
             
             // DISPARO DO E-MAIL ESPECÍFICO DE REJEIÇÃO
             Mail::to($request->user->email)->send(new RequestRejectedMail($request));
@@ -96,6 +101,8 @@ class AdminRequestManagement extends Component
                 'status' => 'Received',
                 'received_at' => Carbon::now(),
             ]);
+
+            $this->logAudit('Requests', $request->id, "Admin confirmed RETURN of book for request #{$request->request_number}");
             
             // --- CHALLENGE 3 LOGIC ---
             // Find alerts for this book

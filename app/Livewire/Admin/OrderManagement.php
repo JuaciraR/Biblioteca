@@ -6,10 +6,11 @@ use Livewire\Component;
 use App\Models\Order;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
+use App\Traits\Trackable;
 
 class OrderManagement extends Component
 {
-    use WithPagination;
+    use WithPagination, Trackable;
 
     public $search = '';
     public $statusFilter = '';
@@ -23,6 +24,11 @@ class OrderManagement extends Component
         $order = Order::find($orderId);
         if ($order) {
             $order->update(['status' => $newStatus]);
+            $this->logAudit(
+                'Orders', 
+                $orderId, 
+                "Admin changed order status to: {$newStatus}"
+            );
             session()->flash('success', "Order #{$order->order_number} updated to {$newStatus}.");
         }
     }

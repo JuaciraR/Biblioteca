@@ -8,9 +8,11 @@ use App\Models\User; //  To find administrators
 use App\Mail\ReviewNotificationMail; 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use App\Traits\Trackable;
 
 class ReviewForm extends Component
 {
+    use Trackable;
     // ID of the book being reviewed, injected from the view
     public $bookId; 
     
@@ -61,6 +63,9 @@ class ReviewForm extends Component
                     'comment' => $this->comment,
                 ]
             );
+
+            $action = $review->wasRecentlyCreated ? "Submitted new review" : "Updated existing review";
+        $this->logAudit('Reviews', $review->id, "{$action} for book ID: {$this->bookId}");
 
             // 2. FIND ADMINISTRATORS: Search for all users with the role 'Admin'
             $admins = User::where('role', 'Admin')->get();

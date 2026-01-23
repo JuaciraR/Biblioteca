@@ -9,10 +9,11 @@ use App\Models\Book;
 use App\Models\Publisher;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
+use App\Traits\Trackable;
 
 class BooksTable extends Component
 {
-    use WithPagination, WithFileUploads;
+    use WithPagination, WithFileUploads, Trackable;
 
     public $search = '';
     public $sortField = 'title';
@@ -177,15 +178,34 @@ class BooksTable extends Component
 
     Book::updateOrCreate(['id' => $this->bookId], $data);
 
+   $action = $this->bookId ? "Updated book details" : "Created a new book entry";
+   $this->logAudit('Inventory', $book->id, "{$action}: {$book->title}");
     $this->isModalOpen = false;
     $this->resetFields();
 }
 
-    public function deleteBook($id)
-    {
-        if (Auth::user()->role !== 'Admin') abort(403);
-        Book::findOrFail($id)->delete();
-    }
+   public function deleteBook($id): void
+{
+    if (Auth::user()->role !== 'Admin') abort(403);
+    
+    // 1. Primeiro encontramos o livro
+    $book = Book::findOrFail($id);
+    
+    // 2. Guardamos o título ANTES de apagar
+    $bookTitle = $book->title;
+    
+    // 3. Apagamos o livro
+    $book->delete();
+
+    
+   $this->logAudit(
+            'Inventory',
+            $id,
+            "Admin permanently deleted book: " . $bookTitle
+        );
+
+    session()->flash('message', 'Book deleted successfully.');
+}
 
     private function resetFields()
     {

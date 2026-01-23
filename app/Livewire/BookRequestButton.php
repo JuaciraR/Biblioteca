@@ -11,8 +11,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\RequestConfirmationMail; 
 use App\Models\AvailabilityAlert;
+use App\Traits\Trackable;
+
 class BookRequestButton extends Component
 {
+    use Trackable;
+
     public Book $book;
      public $hasAlert = false;
     
@@ -56,73 +60,68 @@ class BookRequestButton extends Component
         }
     }
 
+     public function requestBook()
+{
+    if (!Auth::check()) abort(403);
 
-   public function requestBook()
-    {
-        if (!Auth::check()) abort(403);
-        
-        $this->checkAvailability();
-        
-        if (!$this->canRequest) {
-            $msg = '';
-            $isCitizen = Auth::user()->role === 'Cidadao';
+    // Validação de Stock (Requisito 5 do PEST)
+    if ($this->book->stock <= 0) {
+        $this->dispatch('request-notification', message: 'No stock available', type: 'error');
+        return;
+    }
+    
+    $this->checkAvailability();
+    
+    if (!$this->canRequest) {
+        $msg = '';
+        $isCitizen = Auth::user()->role === 'Cidadao';
 
-            if (!$this->isAvailable) {
-                // Bloqueado porque o livro está em uso (Indisponível)
-                $msg = 'Request blocked. The book "' . $this->book->title . '" is currently in request process.';
-                
-            } elseif ($isCitizen && $this->userPendingRequestsCount >= $this->maxPendingBooks) {
-                // Bloqueado porque o cidadão atingiu o limite (3 livros)
-                $msg = 'Request blocked! You have reached the limit of ' . $this->maxPendingBooks . ' concurrent requested books.';
-            }
-            
-            // Dispara evento de erro
-            $this->dispatch('request-notification', message: $msg, type: 'error'); 
-            return; 
+        if (!$this->isAvailable) {
+            $msg = 'Request blocked. The book "' . $this->book->title . '" is currently in use.';
+        } elseif ($isCitizen && $this->userPendingRequestsCount >= $this->maxPendingBooks) {
+            $msg = 'Limit of ' . $this->maxPendingBooks . ' books reached.';
         }
-
-        // --- LÓGICA DE CRIAÇÃO DA REQUISIÇÃO ---
         
-        try {
-            DB::beginTransaction();
-
-            $lastRequest = Request::orderByDesc('request_number')->first();
-            $nextRequestNumber = ($lastRequest ? $lastRequest->request_number : 0) + 1;
-
-            $requestedAt = Carbon::now();
-            $dueDate = $requestedAt->copy()->addDays(Book::LOAN_DAYS);
-            
-            $request = Request::create([
-                'user_id' => Auth::id(), 
-                'book_id' => $this->book->id,
-                'status' => 'Pending',
-                'requested_at' => $requestedAt, 
-                'due_date' => $dueDate,        
-                'request_number' => $nextRequestNumber,
-            ]);
-
-            DB::commit();
-            
-            // Disparo de E-mails
-            if (class_exists(RequestConfirmationMail::class)) {
-                Mail::to(Auth::user()->email)->send(new RequestConfirmationMail($request, false));
-                Mail::to('juacira.rosa@gmail.com')->send(new RequestConfirmationMail($request, true)); 
-            }
-
-            $this->isAvailable = false;
-            $successMsg = 'Request #' . $nextRequestNumber . ' submitted successfully! Due date: ' . $dueDate->format('Y-m-d') . '.';
-            
-            // Disparo de evento de sucesso com nome único
-            $this->dispatch('request-notification', message: $successMsg, type: 'success'); 
-            $this->dispatch('requestCreated');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            $errorMsg = 'An error occurred while registering the request: ' . $e->getMessage();
-            $this->dispatch('request-notification', message: $errorMsg, type: 'error');
-        }
+        $this->dispatch('request-notification', message: $msg, type: 'error'); 
+        return; 
     }
 
+    try {
+        DB::beginTransaction();
+
+        $lastRequest = Request::orderByDesc('request_number')->first();
+        $nextRequestNumber = ($lastRequest ? $lastRequest->request_number : 0) + 1;
+
+        $request = Request::create([
+            'user_id' => Auth::id(), 
+            'book_id' => $this->book->id,
+            'status' => 'Pending',
+            'requested_at' => Carbon::now(), 
+            'due_date' => Carbon::now()->addDays(Book::LOAN_DAYS),        
+            'request_number' => $nextRequestNumber,
+        ]);
+
+        DB::commit();
+
+        // --- GATILHO DE LOG (Exigência do Menu Logs) ---
+       $this->logAudit(
+                'Requests', 
+                $request->id, 
+                "Created book request #{$nextRequestNumber} for: {$this->book->title}"
+            );
+
+        // Envio de emails e notificações
+        $this->isAvailable = false;
+        $this->dispatch('request-notification', message: 'Submitted successfully!', type: 'success'); 
+        $this->dispatch('requestCreated');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        $this->dispatch('request-notification', message: 'Error: ' . $e->getMessage(), type: 'error');
+    }
+
+    
+}
 
 
        public function checkAlertStatus()

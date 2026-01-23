@@ -43,6 +43,13 @@
                             Manage Reviews
                          </x-nav-link>
 
+                              <x-nav-link href="{{ route('logs.index') }}" :active="request()->routeIs('logs.index')">
+            {{ __('Audit Logs') }}
+        </x-nav-link>
+
+        <x-nav-link href="{{ route('book.google_import') }}" :active="request()->routeIs('book.google_import')">
+        <i class="fa-solid fa-cloud-arrow-down mr-1 text-blue-500"></i> {{ __('Google Import') }}
+    </x-nav-link>
                          {{-- ADICIONE ESTE LINK ABAIXO --}}
     <x-nav-link href="{{ route('admin.orders') }}" :active="request()->routeIs('admin.orders')">
         Manage Orders

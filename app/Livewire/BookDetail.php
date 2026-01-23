@@ -6,9 +6,11 @@ use App\Models\Book;
 use App\Models\Cart;
 use App\Models\CartItem;
 use Illuminate\Support\Facades\Auth;
+use App\Traits\Trackable;
 
 class BookDetail extends Component
 {
+    use Trackable;
     public Book $book;
     public $isAdmin;
     
@@ -62,6 +64,11 @@ class BookDetail extends Component
         ]);
     }
 
+    $this->logAudit(
+            'Shopping Cart', 
+            $this->book->id, 
+            "User added book to cart: {$this->book->title}"
+        );
     // 3. Importante: Dispara o evento para atualizar o ícone no menu
     $this->dispatch('cart-updated');
 
