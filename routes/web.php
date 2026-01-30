@@ -12,6 +12,7 @@ use App\Livewire\AdminReviewManagement;
 use App\Http\Controllers\CheckoutController;
 use App\Livewire\Admin\OrderList;
 use App\Http\Controllers\AuditLogController;
+use App\Livewire\Chat\RoomView;
 
 
 Route::get('/', function () {
@@ -99,5 +100,15 @@ Route::get('/checkout/cancel', [CheckoutController::class, 'cancel'])->name('che
     });
 
 Route::get('/logs', [AuditLogController::class, 'index'])->name('logs.index');
+
+Route::get('/chat', function () {
+        return view('chat-layout'); 
+    })->name('chat.index');
+
+    // Rota para Salas Específicas
+    Route::get('/chat/room/{room}', RoomView::class)->name('chat.room');
+
+    // Rota para Mensagens Diretas
+    Route::get('/chat/user/{user}', RoomView::class)->name('chat.user');
 
 });

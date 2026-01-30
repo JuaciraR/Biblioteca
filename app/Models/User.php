@@ -12,6 +12,14 @@ use Laravel\Sanctum\HasApiTokens;
 use App\Mail\ReviewNotificationMail;
 use Illuminate\Support\Facades\Mail;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property string $role
+ * @property string|null $avatar
+ * @property string $status
+ */
 class User extends Authenticatable
 {
     use HasApiTokens;
@@ -32,6 +40,9 @@ class User extends Authenticatable
         'email',
         'password',
          'role',
+         'avatar', 
+        'status',
+       'last_seen_at' => 'datetime',
     ];
 
     /**
@@ -91,4 +102,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Review::class);
     }
+
+    public function chatRooms()
+{
+    return $this->belongsToMany(ChatRoom::class);
+}
+
+public function isOnline()
+{
+    return $this->last_seen_at && $this->last_seen_at->diffInMinutes(now()) < 5;
+}
 }

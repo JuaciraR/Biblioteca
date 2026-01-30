@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 trait Trackable
 {
     /**
-     * Regista uma ação de auditoria a 100% conforme o enunciado.
+     * 
      */
     public function logAudit(string $module, $objectId, string $message): void
     {
